@@ -1,4 +1,6 @@
 from time import sleep
+import threading
+from playsound import playsound
 
 class Sound:
     @staticmethod
