@@ -21,10 +21,6 @@ class Sound:
             sleep(speed)
     
     @staticmethod
-    def stop():
-        print("Stopping sound")
-    
-    @staticmethod
     def crash():
         Sound.play(Sound.MAC_OS_STARTUP_CLASSIC_SOUND)
         Sound.play(Sound.MAC_OS_ERROR_1_SOUND, 2, 0)
