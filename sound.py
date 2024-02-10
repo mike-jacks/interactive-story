@@ -10,19 +10,19 @@ class Sound:
     MAC_OS_OLD_SCHOOL_ERROR_SOUND = 'sounds/mac_os_old_school_error.wav'
     MAC_OS_STARTUP_CLASSIC_SOUND = 'sounds/mac_os_startup_classic.wav'
     MAC_OS_STARTUP_MODERN_SOUND = 'sounds/mac_os_startup_modern.wav'
+    DIALING_PHONE_NUMBER = 'sounds/dialing_phone_number.wav'
+    CONNECTING_TO_COMPUTER_OVER_MODEM_LONG = 'sounds/connecting_to_computer_over_modem_long.wav'
+    CONNECTING_TO_COMPUTER_OVER_MODEM_SHORT = 'sounds/connecting_to_computer_over_modem_short.wav'
+    DIAL_TONE = 'sounds/dial_tone.wav'
     
     
     @staticmethod
-    def play(sound_file: str = MAC_OS_STARTUP_MODERN_SOUND, num_of_times: int = 1, speed: float = 0.0):
+    def play(sound_file: str = MAC_OS_STARTUP_MODERN_SOUND, loop: int = 1, pause: float = 0.0):
         def sound_thread():
             playsound(sound_file)
-        for i in range(num_of_times):
+        for i in range(loop):
             threading.Thread(target=sound_thread).start()
-            sleep(speed)
-    
-    @staticmethod
-    def stop():
-        print("Stopping sound")
+            sleep(pause)
     
     @staticmethod
     def crash():
