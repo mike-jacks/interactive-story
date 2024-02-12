@@ -1,15 +1,16 @@
 from sound import Sound
 from animation import Animation
 from utility import Utility
+from text_color import TextColor
 
 def main():
     Utility.clear_screen()
     Utility.hide_cursor()
-    dialing_phone_num_text_animation = Animation.animated_text("Dialing phone number", end_text="Complete!\n", delay_between_chars= 0.2, continue_thread_after_stop_for= 1)
+    dialing_phone_num_text_animation = Animation.animated_text("Dialing phone number", end_text="Complete!\n", static_text_color= TextColor.RAINBOW, animated_text_color= TextColor.RAINBOW, end_text_color= TextColor.RAINBOW, delay_between_chars= 0.2, continue_thread_after_stop_for= 1)
     Sound.play(Sound.DIAL_TONE, pause= 1)
     Sound.play(Sound.DIALING_PHONE_NUMBER, pause = 2.4)
     dialing_phone_num_text_animation.stop(wait_before_continueing_after_thread_stop_for= 1)
-    connect_to_computer_text_animation = Animation.animated_text("Connecting to computer over modem", end_text="Complete!\n", delay_between_chars= 0.2, continue_thread_after_stop_for= 1)
+    connect_to_computer_text_animation = Animation.animated_text("Connecting to computer over modem", end_text="Complete!\n", static_text_color= TextColor.random(), animated_text_color= TextColor.random(), end_text_color=TextColor.random(), delay_between_chars= 0.2, continue_thread_after_stop_for= 1)
     Sound.play(Sound.CONNECTING_TO_COMPUTER_OVER_MODEM_SHORT, pause = 9)
     connect_to_computer_text_animation.stop(wait_before_continueing_after_thread_stop_for= 1)
     booting_up_computer_text_animation = Animation.animated_text("Booting up computer", end_text="Complete!\n", delay_between_chars= 0.2, continue_thread_after_stop_for=3)
