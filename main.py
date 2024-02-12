@@ -16,13 +16,13 @@ def main():
     Sound.play(Sound.MAC_OS_STARTUP_MODERN_SOUND, pause= 5)
     booting_up_computer_text_animation.stop(hold_thread_for= 1)
     print("Computer booted up!")
-    print_animated_message1 = Animation.text_animating_after_static_text(message="", animated_text="I can also print animated messages like this one! Depending on how long I hold it for, I can animated it more than once!", end_text="\n", delay_animation= 0.02, hold_thread_for= 1)
+    print_animated_message1 = Animation.text_animating_after_static_text(static_text="", animated_text="I can also print animated messages like this one! Depending on how long I hold it for, I can animated it more than once!", end_text="\n", delay_animation= 0.02, hold_thread_for= 1)
     print_animated_message1.stop(hold_thread_for= 2)
-    print_animated_message2 = Animation.text_animating_after_static_text(message="", animated_text="I can print fast,", delay_animation= 0.05, hold_thread_for= 0.1)
+    print_animated_message2 = Animation.text_animating_after_static_text(static_text="", animated_text="I can print fast,", delay_animation= 0.05, hold_thread_for= 0.1)
     print_animated_message2.stop(0.01)
-    print_animated_message3 = Animation.text_animating_after_static_text(message="I can print fast,", animated_text=" or I can print slow,", delay_animation= 0.2, hold_thread_for= 0.1)
+    print_animated_message3 = Animation.text_animating_after_static_text(static_text="I can print fast,", animated_text=" or I can print slow,", delay_animation= 0.2, hold_thread_for= 0.1)
     print_animated_message3.stop(0.01)
-    print_animated_message4 = Animation.text_animating_after_static_text(message="I can print fast, or I can print slow,", animated_text=" or I can print very slow!", end_text="\n", delay_animation= 0.4, hold_thread_for= 1)
+    print_animated_message4 = Animation.text_animating_after_static_text(static_text="I can print fast, or I can print slow,", animated_text=" or I can print very slow!", end_text="\n", delay_animation= 0.4, hold_thread_for= 1)
     print_animated_message4.stop(0.01)
     
     
