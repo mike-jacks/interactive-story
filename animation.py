@@ -1,5 +1,3 @@
-import threading
-import sys
 from time import sleep
 from utility import Utility, ThreadControl
 
