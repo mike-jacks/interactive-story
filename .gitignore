@@ -2,4 +2,5 @@
 */.DS_Store
 .swp
 .env/
-
+__pycache__/
+mike_main_test.py
