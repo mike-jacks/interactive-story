@@ -2,8 +2,9 @@ from sound import Sound
 from animation import Animation
 from utility import Utility
 from text_color import TextColor
-from ascii_animation import play_ascii_animation, load_ascii_art_animation_from_json
+from ascii_animation import play_ascii_animation, load_ascii_art_animation_from_json, clean_up_ascii_art_animation
 from time import sleep
+import re
 
 def main():
     Utility.clear_screen()
@@ -62,6 +63,7 @@ def main():
     Utility.clear_screen()
     Utility.hide_cursor()
     hack_the_planet_animation = load_ascii_art_animation_from_json("animation_images_json/hack_the_planet_animation.json")
+    hack_the_planet_animation = clean_up_ascii_art_animation(hack_the_planet_animation)
     hack_the_planet_thread = play_ascii_animation(hack_the_planet_animation, frames_per_second=24, loop_num_times= 0, continue_thread_after_stop_for= 2)
     hack_the_planet_thread.stop(2)
 

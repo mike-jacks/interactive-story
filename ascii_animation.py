@@ -1,6 +1,7 @@
 from ascii_magic import AsciiArt  # type: ignore
 import time, os, sys
 import json
+import re
 from utility import Utility, ThreadControl
 
 def _create_ascii_art_animation_from_images(image_folder_path: str, columns: int = 150) -> list[str]:
@@ -12,6 +13,16 @@ def _create_ascii_art_animation_from_images(image_folder_path: str, columns: int
 def _create_ascii_art_from_image(image_file_path: str, columns: int = 150) -> list[str]:
     ascii_art_image = AsciiArt.from_image(image_file_path).to_ascii(columns=columns)
     return ascii_art_image
+
+def clean_up_ascii_art_animation(ascii_art_animation: list[str]) -> list[str]:
+    dark_black_pattern = re.compile(r'(\033\[90m).')
+    bright_black_pattern = re.compile(r'(\u001b\[90m).')
+    hack_the_planet_animation_cleaned_up = []
+    for string in ascii_art_animation:
+        replaced_string = dark_black_pattern.sub(r'\033[30m ', string)
+        replaced_string = bright_black_pattern.sub(r'\033[30m ', replaced_string)
+        hack_the_planet_animation_cleaned_up.append(replaced_string)
+    return hack_the_planet_animation_cleaned_up
 
 def load_ascii_art_animation_from_json(json_file_path: str) -> list[str]:
     with open(json_file_path, 'r') as f:
