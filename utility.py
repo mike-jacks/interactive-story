@@ -22,6 +22,12 @@ class Utility:
         sys.stdout.flush()
     
     @staticmethod
+    def clear_multi_line(string: str):
+        num_lines = string.count("\n")
+        sys.stdout.write(f"\033[{num_lines + 1}A")
+        
+    
+    @staticmethod
     def hide_cursor():
         print("\033[?25l", end="")
     
