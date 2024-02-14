@@ -1,0 +1,24 @@
+{
+    "~": {
+        "dirs": [
+            "~/Desktop",
+            "~/Documents",
+            "~/Movies",
+            "~/Pictures"
+        ],
+        "files": [
+            "~/.zshrc",
+            "~/.vimrc",
+            "~/socks_tunnel.py"
+        ]
+    },
+    "~/Desktop": {
+        "dirs": [
+            "~/Desktop/taxes"
+        ],
+        "files": [
+            "~/Desktop/untitled.py",
+            "~/Desktop/notes.md"
+        ]
+    }
+}
