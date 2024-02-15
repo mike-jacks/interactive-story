@@ -11,10 +11,11 @@ class TextColor(Enum):
     YELLOW = '\033[38;5;11m'
     GREEN = '\033[38;5;10m'
     BLUE = '\033[38;5;12m'
+    CYAN = '\033[38;5;43m'
     PURPLE = '\033[38;5;13m'
     WHITE = '\033[37m'
     RESET = '\033[0m'  # Resets the color to default.
-    RAINBOW = [RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE, WHITE]
+    RAINBOW = [RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, WHITE]
     
     @classmethod
     def random(cls):

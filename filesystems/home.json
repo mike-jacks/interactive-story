@@ -1,24 +1,23 @@
 {
-    "~": {
-        "dirs": [
-            "~/Desktop",
-            "~/Documents",
-            "~/Movies",
-            "~/Pictures"
-        ],
-        "files": [
-            "~/.zshrc",
-            "~/.vimrc",
-            "~/socks_tunnel.py"
-        ]
-    },
-    "~/Desktop": {
-        "dirs": [
-            "~/Desktop/taxes"
-        ],
-        "files": [
-            "~/Desktop/untitled.py",
-            "~/Desktop/notes.md"
-        ]
+    "/": {
+        "home": {
+            "Desktop": {
+                "taxes": null
+            },
+            "Documents": {
+                "resume.pdf": null,
+                "cover_letter.docx": null
+            },
+            "Movies": {
+                "star_wars.mp4": null,
+                "the_matrix.mp4": null
+            },
+            "Pictures": {
+                "family.jpg": null,
+                "vacation.jpg": null
+            },
+            "EmptyDirectory": {}
+        }
     }
 }
+
