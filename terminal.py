@@ -1,34 +1,167 @@
 import json
+import glob, os
 from types import UnionType
 from utility import Utility
 from text_color import TextColor
 from ascii_animation import play_ascii_animation, load_ascii_art_animation_from_json
 from time import sleep
 
-class Terminal:
+class User:
+    def __init__(self, username: str, password: str) -> None:
+        self.username = username
+        self.password = password
+    
+    def __repr__(self) -> str:
+        return f"User: {self.username})"
+    
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, User) and self.username == other.username and self.password == other.password
 
-    def __init__(self, fname):
+class Terminal:
+    terminals: list['Terminal'] = []
+
+    def __init__(self, terminal_name: str, terminal_ip_address: str, terminal_username = None, terminal_password = None):
+        self.terminal_name = terminal_name
+        self.terminal_ip_address = terminal_ip_address
+        self.filesystem_filename = f"./filesystems/{terminal_name}_filesystem.json"
+        self.filesystem = self.load_filesystem()
+        self.valid_users = self.load_valid_users()
         self.current_path = "/home"
-        self.home = "/home"
-        self.filesystem = self.load_filesystem(fname)
-        self.commands = {
+        self.active_user = None
+        # self.messeges = [[str]]
+        # self.new_message = False
+        Terminal.terminals.append(self)
+        self.exit_requested = False
+        self.commands = self.get_commands()
+        
+        if not self.valid_users and terminal_username and terminal_password:
+            # Only create a new user if no valid users exist and credentials are provided
+            self.login_or_create_user(terminal_username, terminal_password)
+        elif self.valid_users:
+            # If valid users exist, auto login if credentials are provided
+            self.active_user = self.valid_users[0]
+            self.current_path = f"/home/{self.active_user.username}"
+        else:
+            self.prompt_for_login_or_create_user()
+    
+    def get_commands(self):
+        return {
             "pwd": self.pwd,
             "ls": self.ls,
             "cd": self.cd,
             "mkdir": self.mkdir,
             "touch": self.touch,
             "cat": self.cat,
-            "open": self.open,
+            "open": self.open_file,
             "rm": self.rm,
             "rmdir": self.rmdir,
+            "ifconfig": self.ifconfig,
+            "ssh": self.ssh,
+            #"messenger": self.mesenger,
+            "help": self.terminal_help,
+            "resetgame": self.reset_game,
             "exit()": self.exit,
         }
-        self.username = None
-        self.exit_requested = False
+    
+    def add_user(self, username: str, password: str) -> None:
+        self.valid_users.append(User(username, password))
+    
+    def load_filesystem(self):
+        try:
+            with open(self.filesystem_filename) as file:
+                return json.load(file)
+        except FileNotFoundError:
+            print(f"Filesystem {self.filesystem_filename} not found. Creating new filesystem.")
+            new_filesystem = self.create_new_filesystem()
+            self.save_filesystem(new_filesystem)
+            return new_filesystem
+    
+    def create_new_filesystem(self):
+        base_structure = {"/": {"home": {}}}
+        self.save_filesystem(base_structure)
+        return base_structure
+    
+    def save_filesystem(self, filesystem=None):
+        filesystem = filesystem or self.filesystem
+        with open(self.filesystem_filename, "w") as file:
+            json.dump(filesystem, file, indent=4)
+    
+    def load_valid_users(self):
+        valid_users = []
+        home_dirs = self.filesystem.get("/", {}).get("home", {})
+        for username, _ in home_dirs.items():
+            password_file_path = f"/home/{username}/.password"
+            password = self.get_file_content(password_file_path)
+            if password is not None:
+                valid_users.append(User(username, password))
+        return valid_users
+    
+    def get_file_content(self, file_path):
+        parts = file_path.strip("/").split("/")
+        node = self.filesystem["/"]
+        for part in parts:
+            if part in node:
+                node = node[part]
+            else:
+                return None #File not found
+        return node
+    
+    def prompt_for_login_or_create_user(self):
+        print("Welcome to the terminal!")
+        print("Please log in or create a new user.")
+        # This is a simplified interaction
+        while True:
+            choice = input("Do you have an login credentials? (y/n): ")
+            if choice.lower() in ["y", "n"]:
+                break
+            print("Invalid choice. Please enter 'y' or 'n'.")
+        if choice == "y":
+            while True:
+                username = input("Enter your username: ")
+                if " " in username:
+                    print("Username cannot contain spaces.")
+                    continue
+                password = input("Enter your password: ")
+                if " " in password:
+                    print("Password cannot contain spaces.")
+                    continue
+                break
+            self.login_or_create_user(username, password)
+        else:
+            while True:
+                username = input("Create username: ")
+                if " " in username:
+                    print("Username cannot contain spaces.")
+                    continue
+                password = input("Create password: ")
+                if " " in password:
+                    print("Password cannot contain spaces.")
+                    continue
+                break
+            self.login_or_create_user(username=username, password=password) 
+    
+    def login_or_create_user(self, username, password):
+        if not self.valid_users:
+            user = User(username, password)
+            self.valid_users.append(user)
+            self.create_user_home_directory(username)
+            self.active_user = user
+            self.current_path = f"/home/{self.active_user.username}"
+        else:
+            self.active_user = self.valid_users[0]
+            self.current_path = f"/home/{self.active_user.username}"
+        self.save_filesystem()
 
-    def load_filesystem(self, filename):
-        with open(filename) as json_file_object:
-            return json.load(json_file_object)
+    def create_user_home_directory(self, username):
+        if not self.active_user:
+            print("No active user. Cannot create home directory.")
+            return
+        base_dirs = ["Desktop", "Documents", "Downloads", "Movies", "Music", "Pictures"]
+        user_home = {dir_name: {} for dir_name in base_dirs}
+        # Ensure active_user is not None before accessing password
+        user_home[".password"] = self.active_user.password  if self.active_user else "defaultPassword" # Example of setting the password file
+        self.filesystem["/"]["home"][username] = user_home
+        self.save_filesystem()
 
     def execute(self, command):
         args = command.split()
@@ -48,9 +181,8 @@ class Terminal:
         print(self.current_path)
 
     def ls(self, args=[]):
-        if args:
-            print("ls does not take any arguments")
-            return
+        show_all = '-a' in args or '-al' in args # Check if '-a' or '-al' flag is present in command arguments
+        
         # Start from the root of the filesystem
         node = self.filesystem["/"]
         
@@ -67,14 +199,16 @@ class Terminal:
         # List the contents of the current directory
         if isinstance(node, dict):
             for item in node:
-                if node[item] is None:
+                if not show_all and item.startswith("."):
+                    continue # Skip hidden files and directories unles -a or -al flag is present
+                if not isinstance(node[item], dict): # it's a file
                     print(f"{TextColor.WHITE.value}{item}{TextColor.RESET.value}", end=" ") # File printed to console
-                else:
+                else: # it's a directory
                     print(f"{TextColor.BLUE.value}{item}{TextColor.RESET.value}", end=" ") # Directory printed to console
         elif node is None:
             # The current node is a file, not a directory
             print("Current path is a file, not a directory")
-        print("\n")
+        print("\n") # Print a newline after listing the contents
     
     def navigate_to(self, new_path):
         # Normalize the new path for absolute paths or construct one for relative paths
@@ -92,7 +226,7 @@ class Terminal:
         for part in parts:
             # For each part of the path, try to navigate down the filesystem hierarchy
             if part in node:
-                if node[part] is None:
+                if not isinstance(node[part], dict):
                     print(f"{part}' is a file, not a directory.")
                     return
                 node = node[part]
@@ -118,7 +252,7 @@ class Terminal:
                 self.current_path = self.current_path if self.current_path else "/"
         elif new_path == "~":
             # Reset to home directory
-            self.current_path = self.home
+            self.current_path = f"/home/{self.active_user.username}" if self.active_user else "/home"
         else:
             self.navigate_to(new_path)
 
@@ -137,6 +271,8 @@ class Terminal:
         if new_dir in node:
             print(f"Directory '{new_dir}' already exists.")
             return
+        elif self.current_path == "/home":
+            print(f"Cannot create directory in {self.current_path.lstrip("/")} directory. This is a protected directory.")
         else:
             node[new_dir] = {}
     
@@ -177,7 +313,7 @@ class Terminal:
         else:
             print(f"'{filename}' is not a readable file.")
     
-    def open(self, args):
+    def open_file(self, args):
         if not args:
             print("No file name specified")
             return
@@ -201,7 +337,17 @@ class Terminal:
         if not args:
             print("No file name specified")
             return
-        filename = args[0]
+        
+        # Check for '-r' or '-rf' flag for recursive deltion
+        recursive = '-r' in args or '-rf' in args
+        # Remove the flag from the args list if present
+        args = [arg for arg in args if arg not in ['-r', '-rf']]
+        if not args:
+            print("No file name specified after flags.")
+            return
+        target_name = args[0]
+        
+        # Navigate to the target's parent directory
         node = self.filesystem["/"]
         parts = self.current_path.strip("/").split("/")
         for part in parts:
@@ -210,15 +356,20 @@ class Terminal:
             else:
                 print(f"Path '{'/'.join(parts)}' not found.")
                 return
-        if filename in node:
-            if not isinstance(node[filename], dict): # Not a directory
-                del node[filename]
-                print(f"'{filename}' has been deleted.")
+        
+        # Delete the target file or directory
+        if target_name in node:
+            if isinstance(node[target_name], dict) and not recursive:
+                print(f"'{target_name}' is a directory. Use '-rf' to remove directories.")
+                return
             else:
-                print(f"'{filename}' is a directory, not a file. Cannot delete directories with rm.")
+                del node[target_name]
+                print(f"File '{target_name}' has been deleted.")
         else:
-            print(f"File '{filename}' not found.")
-    
+            print(f"File '{target_name}' not found.")
+            
+            
+            
     def rmdir(self, args):
         if not args:
             print("No directory name specified")
@@ -265,23 +416,96 @@ class Terminal:
 
         # Call delete_dir with the parent node and the directory name to remove
         delete_dir(parent_node, dirname)
+    
+    def ssh(self, args):
+        if not args:
+            print("No ip address specified")
+            return
+        ip_address = args[0]
+        target_terminal = next((t for t in Terminal.terminals if t.terminal_ip_address == ip_address), None)
+        if target_terminal:
+            print(f"Connecting to {ip_address}...")
+            sleep(1)
+            print(f"Connected to {ip_address}.")
+            username = input("Enter username: ")
+            password = input("Enter password: ")
+            # Verify credentials
+        else:
+            print(f"Could not connect to {ip_address}.")
+            return
+        if any(u for u in target_terminal.valid_users if u.username == username and u.password == password):
+            print(f"Logged into {target_terminal.terminal_name} terminal as {username}.")
+            sleep(1)
+            while not target_terminal.exit_requested:
+                action = input(f"[{username}] {target_terminal.current_path} $ ")
+                target_terminal.execute(action)
+                if target_terminal.exit_requested:
+                    target_terminal.exit_requested = False
+                    break
+            print(f"Quit out of {target_terminal.terminal_name} terminal successfully!")
+            return
+        else:
+            print("Invalid username or password.")
+            print("Disconnecting from terminal...")
+            return
+        
+    
+    def ifconfig(self, args=[]):
+        print(f"IP Address: {self.terminal_ip_address}")
+    
+    def terminal_help(self, args=[]):
+        print()
+        print("Commands:\n")
+        print("pwd - print working directory")
+        print("ls - list directory contents")
+        print("cd - change directory")
+        print("mkdir - make directory")
+        print("touch - create file")
+        print("cat - print file contents")
+        print("open - open file")
+        print("rm - remove file")
+        print("rmdir - remove directory")
+        print("ifconfig - get ip address")
+        print("exit() - exit terminal")
+        print()
 
+    def reset_game(self, args=[]):
+        while True:
+            confirmation = input("Are you sure you want to reset the game? This will delete all saved data. (y/n): ")
+            if confirmation.lower() in ["y", "n", "yes", "no"]:
+                break
+            else:
+                print("Invalid choice. Please enter 'y' or 'n'.")
+        if confirmation.lower() in ["y", "yes"]:
+            try:
+                json_files = glob.glob("./filesystems/*.json")
+                for f in json_files:
+                    os.remove(f)
+                print("Game reset successfully. Exiting game.")
+            except Exception as e:
+                print(f"Error resetting game: {e}")
+            finally:
+                self.exit_requested = True
+        else:
+            print("Game reset cancelled.")
     
     def exit(self, args=[]):
         print("Exiting terminal...")
+        self.save_filesystem()
         sleep(1)
         self.exit_requested = True
-        
-        
+
+
+Utility.clear_screen()
+# Create a few terminals
+user_terminal = Terminal(terminal_name="user_machine", terminal_ip_address="170.130.234.11")
+gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.112.29.87", terminal_username="admin", terminal_password="god")
 
 def main():
-    Utility.clear_screen()
-    terminal = Terminal("./filesystems/home.json")
-    username = input("Username: ")
-    while True:
-        action = input(f"[{username}] {terminal.current_path} $ ")
-        terminal.execute(action)
-        if terminal.exit_requested:
+    while not user_terminal.exit_requested:
+        action = input(f"[{user_terminal.active_user.username}] {user_terminal.current_path} $ ")
+        user_terminal.execute(action)
+        if user_terminal.exit_requested:
             break
     print("Quit out of terminal successfully!")
 
