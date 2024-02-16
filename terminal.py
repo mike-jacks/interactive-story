@@ -1,10 +1,11 @@
 import json
 import glob, os
-from types import UnionType
+import subprocess
 from utility import Utility
 from text_color import TextColor
 from ascii_animation import play_ascii_animation, load_ascii_art_animation_from_json
-from time import sleep
+from time import sleep, time
+from hacker_message_terminal import HackerMessageTerminal
 
 class User:
     def __init__(self, username: str, password: str) -> None:
@@ -19,6 +20,7 @@ class User:
 
 class Terminal:
     terminals: list['Terminal'] = []
+    messages: list[list[str]] = [[]]
 
     def __init__(self, terminal_name: str, terminal_ip_address: str, terminal_username = None, terminal_password = None) -> None:
         self.terminal_name = terminal_name
@@ -73,11 +75,21 @@ class Terminal:
             "ifconfig": self.ifconfig,
             "ssh": self.ssh,
             "setpasswd": self.set_password,
-            #"messenger": self.mesenger,
+            "messenger": self.mesenger,
             "help": self.terminal_help,
             "resetgame": self.reset_game,
             "exit": self.exit,
         }
+    
+    def mesenger(self, args=[]):
+        # display hacker messenger window with the last item in the messages list
+        if self.messages:
+            hacker_terminal_name = "Hacker Terminal"
+            hacker_terminal = HackerMessageTerminal(hacker_terminal_name)
+            hacker_terminal.enqueue_messages(self.messages[-1])
+            hacker_terminal.display_messages_and_wait()
+            sleep(2)
+            HackerMessageTerminal.wait_for_window_to_close(hacker_terminal_name)
     
     def prompt_for_login(self):
         print("Please log in.")
@@ -584,12 +596,31 @@ class Terminal:
         self.exit_requested = True
 
 
+
 Utility.clear_screen()
 # Create a few terminals
 user_terminal = Terminal(terminal_name="user_machine", terminal_ip_address="170.130.234.11")
 gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.112.29.87", terminal_username="admin", terminal_password="god")
 
 def main():
+    hacker_terminal_name = "Hacker Terminal"
+    hacker_terminal = HackerMessageTerminal(hacker_terminal_name)
+
+    # Enqueue messages to be displayed in the hacker terminal
+    messages = [
+        "Welcome to the terminal.",
+        "Please login.",
+        "Enter your username: ",
+        "Enter your password: ",
+        "Login failed. Invalid username or password.",
+        "exiting terminal..."
+    ]
+    Terminal.messages.append(messages)
+    hacker_terminal.enqueue_messages(messages)
+    hacker_terminal.display_messages_and_wait()
+    sleep(2)
+    HackerMessageTerminal.wait_for_window_to_close(hacker_terminal_name)
+
     if not user_terminal.active_user:
         print("Welcome to the terminal.")
         user_terminal.prompt_for_login()
