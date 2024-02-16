@@ -388,7 +388,10 @@ class Terminal:
         if filename in node and isinstance(node[filename], str):
             print(node[filename])
         elif filename in node and isinstance(node[filename], list):
-            play_ascii_animation(filename, frames_per_second=24, loop_num_times=1)
+            Utility.clear_screen()
+            Utility.hide_cursor()
+            play_ascii_animation(node[filename], frames_per_second=12, loop_num_times=-2)
+            Utility.show_cursor()
         else:
             print(f"'{filename}' is not a readable file.")
     
