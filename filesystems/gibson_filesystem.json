@@ -11,7 +11,7 @@
             }
         },
         "etc": {
-            ".passwd": "defaultPassword"
+            ".passwd": "god"
         },
         "var": {},
         "tmp": {},
