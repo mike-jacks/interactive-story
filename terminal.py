@@ -585,7 +585,7 @@ def main():
     # Main command loop
     while not user_terminal.exit_requested:
         if user_terminal.active_user:
-            action = input(f"[{user_terminal.active_user.username}] {user_terminal.current_path} $ ")
+            action = input(f"{user_terminal.active_user.username}@{user_terminal.terminal_name}:{user_terminal.current_path}$ ")
             user_terminal.execute(action)
         else:
             user_terminal.prompt_for_login()
