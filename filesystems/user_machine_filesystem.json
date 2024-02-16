@@ -4,7 +4,10 @@
             "zerocool": {
                 "Desktop": {},
                 "Documents": {},
-                "Downloads": {},
+                "Downloads": {
+                    "movie.txt": "Hackers is a great movie!",
+                    "newfile.txt": "New contents\nMore contents"
+                },
                 "Movies": {},
                 "Music": {},
                 "Pictures": {}

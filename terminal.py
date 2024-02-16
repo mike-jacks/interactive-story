@@ -1,6 +1,5 @@
 import json
 import glob, os
-import subprocess
 from utility import Utility
 from text_color import TextColor
 from ascii_animation import play_ascii_animation, load_ascii_art_animation_from_json
@@ -68,6 +67,7 @@ class Terminal:
             "cd": self.cd,
             "mkdir": self.mkdir,
             "touch": self.touch,
+            "echo": self.echo,
             "cat": self.cat,
             "open": self.open_file,
             "rm": self.rm,
@@ -346,6 +346,7 @@ class Terminal:
             print(f"Cannot create directory in {self.current_path.lstrip("/")} directory. This is a protected directory.")
         else:
             node[new_dir] = {}
+        self.save_filesystem()
     
     def touch(self, args):
         if not args:
@@ -364,7 +365,8 @@ class Terminal:
             print(f"File '{filename}' already exists.")
             return
         else:
-            node[filename] = None 
+            node[filename] = None
+        self.save_filesystem() 
     
     def cat(self, args):
         if not args:
@@ -441,6 +443,7 @@ class Terminal:
                 print(f"File '{target_name}' has been deleted.")
         else:
             print(f"File '{target_name}' not found.")
+        self.save_filesystem()
             
             
             
@@ -464,6 +467,7 @@ class Terminal:
         target_path = parts + [dirname] if self.current_path != "/" else [dirname]
         parent_path = target_path[:-1]
         parent_node = node
+        self.save_filesystem()
 
         # Navigate to the parent directory of the target
         for part in parent_path:
@@ -589,6 +593,89 @@ class Terminal:
         else:
             print("Game reset cancelled.")
     
+    def add_file_to_filesystem(self, path: str, filename: str, content=None):
+        """
+        Adds a file to the specified path in the filesystem. If the path does not exist, it is created.
+        
+        Args:
+        - path (str): The path to add the file to, relative to the root of the filesystem.
+        - filename (str): The name of the file to add.
+        - content (str, optional): The content of the file. Defaults to None.
+        """
+        # Ensure the path starts with a slash for consistency
+        if not path.startswith("/"):
+            path = "/" + path
+
+        parts = path.strip("/").split("/")  # Split the path into parts
+        node = self.filesystem["/"]  # Start from the root
+        
+        # Traverse the path, creating directories as needed
+        for part in parts:
+            if part not in node:
+                node[part] = {}  # Create a new directory if it does not exist
+            node = node[part]  # Move down to the next level in the path
+        
+        # Check if the file exists and if its content is different
+        if filename in node:
+            if node[filename] == content:
+                # The file exists with the same content; do nothing
+                return
+            else:
+                # The file exists but with different content; update it
+                node[filename] = content
+        else:
+            # The file does not exist; add it
+            node[filename] = content if content is not None else None
+
+        # Save the updated filesystem
+        self.save_filesystem()
+    
+    def echo(self, args):
+        if not args or ">" not in args and ">>" not in args:
+            print("Usage: echo \"text\" > filename.txt or echo \"text\" >> filename.txt")
+            return
+        
+        # Join args back to a string and split by redirection operator
+        args_str = " ".join(args)
+        if ">>" in args_str:
+            text, filename = args_str.split(" >> ", 1)
+            mode = "append"
+        else:
+            text, filename = args_str.split(" > ", 1)
+            mode = "overwrite"
+
+        # Remove leading and trailing quotes from text
+        text = text.strip("\"")
+
+        # Handle file writing or appending
+        if mode == "overwrite":
+            self.add_file_to_filesystem(self.current_path, filename, text)
+        elif mode == "append":
+            self.append_to_file(self.current_path, filename, text)
+
+    def append_to_file(self, path, filename, content):
+        """Appends content to a file, creating the file if it doesn't exist."""
+        # Ensure path consistency and load or create the filesystem
+        full_path = os.path.join(path, filename).strip("/")
+        parts = full_path.split("/")
+        file_name = parts.pop()  # Remove the file name from the path
+        node = self.filesystem["/"]
+        
+        # Traverse or create the path
+        for part in parts:
+            if part not in node:
+                node[part] = {}
+            node = node[part]
+        
+        # Append to the file
+        if file_name in node:
+            node[file_name] += "\n" + content  # Start content on a new line
+        else:
+            node[file_name] = content
+        
+        self.save_filesystem()
+
+    
     def exit(self, args=[]):
         print("Exiting terminal...")
         self.save_filesystem()
@@ -601,6 +688,7 @@ Utility.clear_screen()
 # Create a few terminals
 user_terminal = Terminal(terminal_name="user_machine", terminal_ip_address="170.130.234.11")
 gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.112.29.87", terminal_username="admin", terminal_password="god")
+gibson_terminal.add_file_to_filesystem("/home/admin/Documents/Important", "README.txt", "Welcome to the Gibson terminal.")
 
 def main():
     hacker_terminal_name = "Hacker Terminal"
