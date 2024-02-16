@@ -64,8 +64,9 @@ def main():
     Utility.hide_cursor()
     hack_the_planet_animation = load_ascii_art_animation_from_json("animation_images_json/hack_the_planet_animation.json")
     hack_the_planet_animation = clean_up_ascii_art_animation(hack_the_planet_animation)
-    hack_the_planet_thread = play_ascii_animation(hack_the_planet_animation, frames_per_second=24, loop_num_times= 0, continue_thread_after_stop_for= 2)
-    hack_the_planet_thread.stop(2)
+    # hack_the_planet_thread = play_ascii_animation(hack_the_planet_animation, frames_per_second=24, loop_num_times= 0, continue_thread_after_stop_for= 2)
+    # hack_the_planet_thread.stop(2)
+    play_ascii_animation(hack_the_planet_animation, frames_per_second=24, loop_num_times= -4)
 
 if __name__ == '__main__':
     main()
