@@ -20,6 +20,7 @@ class User:
 
 class Terminal:
     terminals: list['Terminal'] = []
+    messages: list[list[str]] = [[]]
 
     def __init__(self, terminal_name: str, terminal_ip_address: str, terminal_username = None, terminal_password = None) -> None:
         self.terminal_name = terminal_name
@@ -74,11 +75,21 @@ class Terminal:
             "ifconfig": self.ifconfig,
             "ssh": self.ssh,
             "setpasswd": self.set_password,
-            #"messenger": self.mesenger,
+            "messenger": self.mesenger,
             "help": self.terminal_help,
             "resetgame": self.reset_game,
             "exit": self.exit,
         }
+    
+    def mesenger(self, args=[]):
+        # display hacker messenger window with the last item in the messages list
+        if self.messages:
+            hacker_terminal_name = "Hacker Terminal"
+            hacker_terminal = HackerMessageTerminal(hacker_terminal_name)
+            hacker_terminal.enqueue_messages(self.messages[-1])
+            hacker_terminal.display_messages_and_wait()
+            sleep(2)
+            HackerMessageTerminal.wait_for_window_to_close(hacker_terminal_name)
     
     def prompt_for_login(self):
         print("Please log in.")
@@ -604,6 +615,7 @@ def main():
         "Login failed. Invalid username or password.",
         "exiting terminal..."
     ]
+    Terminal.messages.append(messages)
     hacker_terminal.enqueue_messages(messages)
     hacker_terminal.display_messages_and_wait()
     sleep(2)
