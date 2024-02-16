@@ -3,18 +3,24 @@
         "home": {
             "zerocool": {
                 "Desktop": {},
-                "Documents": {},
+                "Documents": {
+                    "gibson_info.txt": "18.112.29.87\nadmin\ngod"
+                },
                 "Downloads": {
-                    "movie.txt": "Hackers is a great movie!",
-                    "newfile.txt": "New contents\nMore contents"
+                    "movie.txt": "Hackers is a great movie!"
                 },
                 "Movies": {},
                 "Music": {},
                 "Pictures": {}
+            },
+            "user": {
+                "Documents": {
+                    "gibson_info.txt": "18.112.29.87\nadmin\ngod"
+                }
             }
         },
         "etc": {
-            ".passwd": "hackers"
+            ".passwd": "hacking"
         },
         "var": {},
         "tmp": {},

@@ -696,19 +696,20 @@ def main():
 
     # Enqueue messages to be displayed in the hacker terminal
     messages = [
-        "Welcome to the terminal.",
-        "Please login.",
-        "Enter your username: ",
-        "Enter your password: ",
-        "Login failed. Invalid username or password.",
-        "exiting terminal..."
+        f"Hi {user_terminal.valid_users[0].username}!",
+        "I'm a hacker and I know you are a hacker too!",
+        "I need your help to modify files on the Gibson terminal.",
+        "Something is wrong, and I only have read acces.",
+        "I have sent document with the ip address and login credentials for you to ssh into to your Downloads folder.",
+        "Please change the password of the admin user to 'hacked'.",
+        "I will be in touch...",
     ]
     Terminal.messages.append(messages)
     hacker_terminal.enqueue_messages(messages)
     hacker_terminal.display_messages_and_wait()
     sleep(2)
     HackerMessageTerminal.wait_for_window_to_close(hacker_terminal_name)
-
+    user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Documents", "gibson_info.txt", f"{gibson_terminal.terminal_ip_address}\n{gibson_terminal.valid_users[0].username}\n{gibson_terminal.valid_users[0].password}")
     if not user_terminal.active_user:
         print("Welcome to the terminal.")
         user_terminal.prompt_for_login()
