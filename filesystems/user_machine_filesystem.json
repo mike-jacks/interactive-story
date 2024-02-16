@@ -1,5 +1,45 @@
 {
     "/": {
-        "home": {}
+        "home": {
+            "mikejacks": {
+                "Desktop": {},
+                "Documents": {},
+                "Downloads": {},
+                "Movies": {},
+                "Music": {},
+                "Pictures": {}
+            }
+        },
+        "etc": {
+            ".passwd": "testing"
+        },
+        "var": {},
+        "tmp": {},
+        "bin": {
+            "pwd": null,
+            "ls": null,
+            "cd": null,
+            "mkdir": null,
+            "touch": null,
+            "cat": null,
+            "open": null,
+            "rm": null,
+            "rmdir": null,
+            "ifconfig": null,
+            "ssh": null,
+            "help": null,
+            "resetgame": null,
+            "exit": null
+        },
+        "dev": {},
+        "lib": {},
+        "mnt": {},
+        "opt": {},
+        "proc": {},
+        "root": {},
+        "sbin": {},
+        "srv": {},
+        "sys": {},
+        "usr": {}
     }
 }
