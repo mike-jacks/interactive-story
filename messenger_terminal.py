@@ -4,31 +4,38 @@ import queue
 import threading
 import tempfile
 from time import sleep, time
+from abc import ABC, abstractmethod
+from text_color import TextColor
 
-class HackerMessageTerminal:
-    
-    
-    def __init__(self, name):
-        self.name = name
+class MessageTerminal(ABC):
+     
+    def __init__(self, window_name):
+        self.window_name = window_name
         self.message_queue = queue.Queue()
         self.process = None
         self.keep_running = True
-        self.messages = []
+        self.messages: list[list[str]] = [] # type: ignore
         self.thread = threading.Thread(target=self.process_messages, daemon=True)
         self.thread.start()
+        self.terminal_text_color = self.message_terminal_text_color()
+        
+    @abstractmethod
+    def message_terminal_text_color(self):
+        pass
     
     def enqueue_messages(self, messages):
+        self.messages.append([])
         for message in messages:
-            self.messages.append(message)
+            self.messages[-1].append(message)
     
     def display_messages_and_wait(self):
         # Generate a script to display all messages and wait for an input.
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.sh') as script_file:
             script_file.write("#!/bin/zsh\n")
             script_file.write("clear\n")
-            script_file.write(f'echo -n -e "\\033]0;{self.name}\\007"\n')
-            for message in self.messages:
-                script_file.write(f'echo -n "Hacker: ";')
+            script_file.write(f'echo -n -e "\\033]0;{self.window_name}\\007"\n')
+            for message in self.messages[-1]:
+                script_file.write(f'echo -n "{self.terminal_text_color.value}{self.window_name}: ";')
                 self.animate_typing(message, script_file)
                 script_file.write(f'echo -n "\n";')
                 script_file.write("sleep 1\n")
@@ -37,7 +44,7 @@ class HackerMessageTerminal:
             script_file.write('read varname\n')
             
             # AppleScript to close the terminal window
-            script_file.write(f"osascript -e 'tell application \"Terminal\" to close (every window whose name contains \"{self.name}\")' &\n")
+            script_file.write(f"osascript -e 'tell application \"Terminal\" to close (every window whose name contains \"{self.window_name}\")' &\n")
             
         # Make the script file executable
         os.chmod(script_file.name, 0o755)
@@ -53,26 +60,20 @@ class HackerMessageTerminal:
             else:
                 sleep(0.1)
         
-    def animate_typing(self, message, script_file, speed=0.1):
+    def animate_typing(self, message, script_file, speed=0.02):
         for letter in message:
             # Directly use printf for each letter with proper escaping
             escaped_letter = letter.replace("'", "'\\''")  # Escape single quotes correctly
-            script_file.write(f"printf '{escaped_letter}'; sleep {speed}; ")
-
-
-
- 
+            script_file.write(f"printf '{escaped_letter}'; sleep {speed}; ") 
     
     def stop(self):
         self.keep_running = False
         self.thread.join()
     
-    
-    @classmethod
-    def is_messages_terminal_open(cls, title):
+    def is_messages_terminal_open(self):
         # Check if the window with given title is still open.
         script = f'''tell application "Terminal"
-                        set windowList to every window whose name contains "{title}"
+                        set windowList to every window whose name contains "{self.window_name}"
                         if (count of windowList) > 0 then
                             return true
                         else
@@ -82,15 +83,28 @@ class HackerMessageTerminal:
         result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
         return "true" in result.stdout.strip()
 
-    @classmethod
-    def wait_for_window_to_close(cls, title, timeout=60):
+    def wait_for_window_to_close(self, timeout=60):
         """Wait for the Terminal window with the specified title to close."""
         timeout = float(timeout)
         start_time = time()
         while time() - start_time < timeout:
-            if not cls.is_messages_terminal_open(title):
+            if not self.is_messages_terminal_open():
                 print("Window closed, continuing...")
                 return True
             sleep(1)  # Poll every second
         print("Timeout waiting for window to close.")
         return False
+
+class HackerMessenger(MessageTerminal):
+    def __init__(self, window_name):
+        super().__init__(window_name)
+    
+    def message_terminal_text_color(self):
+        return TextColor.GREEN
+
+class CorporationMessenger(MessageTerminal):
+    def __init__(self, window_name):
+        super().__init__(window_name)
+    
+    def message_terminal_text_color(self):
+        return TextColor.RED

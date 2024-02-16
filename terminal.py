@@ -4,7 +4,7 @@ from utility import Utility
 from text_color import TextColor
 from ascii_animation import play_ascii_animation, load_ascii_art_animation_from_json
 from time import sleep, time
-from hacker_message_terminal import HackerMessageTerminal
+from messenger_terminal import HackerMessenger, CorporationMessenger, MessageTerminal
 
 class User:
     def __init__(self, username: str, password: str) -> None:
@@ -19,7 +19,8 @@ class User:
 
 class Terminal:
     terminals: list['Terminal'] = []
-    messages: list[list[str]] = [[]]
+    messengers: list[MessageTerminal] = [HackerMessenger("Hacker")]
+    hacker_messages: list[list[str]] = [[]]
 
     def __init__(self, terminal_name: str, terminal_ip_address: str, terminal_username = None, terminal_password = None) -> None:
         self.terminal_name = terminal_name
@@ -28,6 +29,9 @@ class Terminal:
         self.filesystem_exists = os.path.exists(self.filesystem_filename)
         self.valid_users: list[User] = []
         self.active_user = None
+        self.messenger = CorporationMessenger(self.terminal_name)
+        self.messenger_messages: list[list[str]] = [[]]
+        Terminal.messengers.append(self.messenger)
         
         if self.filesystem_exists:
             self.filesystem = self.load_filesystem()
@@ -84,12 +88,11 @@ class Terminal:
     def mesenger(self, args=[]):
         # display hacker messenger window with the last item in the messages list
         if self.messages:
-            hacker_terminal_name = "Hacker Terminal"
-            hacker_terminal = HackerMessageTerminal(hacker_terminal_name)
+            hacker_terminal = Terminal.messengers[0]
             hacker_terminal.enqueue_messages(self.messages[-1])
             hacker_terminal.display_messages_and_wait()
             sleep(2)
-            HackerMessageTerminal.wait_for_window_to_close(hacker_terminal_name)
+            hacker_terminal.wait_for_window_to_close()
     
     def prompt_for_login(self):
         print("Please log in.")
@@ -691,11 +694,11 @@ gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.112.2
 gibson_terminal.add_file_to_filesystem("/home/admin/Documents/Important", "README.txt", "Welcome to the Gibson terminal.")
 
 def main():
-    hacker_terminal_name = "Hacker Terminal"
-    hacker_terminal = HackerMessageTerminal(hacker_terminal_name)
+    hacker_messenger = Terminal.messengers[0]
+    gibson_messenger = gibson_terminal.messenger
 
     # Enqueue messages to be displayed in the hacker terminal
-    messages = [
+    hacker_messages = [
         f"Hi {user_terminal.valid_users[0].username}!",
         "I'm a hacker and I know you are a hacker too!",
         "I need your help to modify files on the Gibson terminal.",
@@ -704,15 +707,23 @@ def main():
         "Please change the password of the admin user to 'hacked'.",
         "I will be in touch...",
     ]
-    Terminal.messages.append(messages)
-    hacker_terminal.enqueue_messages(messages)
-    hacker_terminal.display_messages_and_wait()
+    
+    hacker_messenger.enqueue_messages(hacker_messages)
+    hacker_messenger.display_messages_and_wait()
     sleep(2)
-    HackerMessageTerminal.wait_for_window_to_close(hacker_terminal_name)
+    hacker_messenger.wait_for_window_to_close()
     user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Documents", "gibson_info.txt", f"{gibson_terminal.terminal_ip_address}\n{gibson_terminal.valid_users[0].username}\n{gibson_terminal.valid_users[0].password}")
+
+    gibson_messenger.enqueue_messages(["You mother fucker!", "How dare you hack in and change my password!", "You will pay for this you piss ant!"])
+    gibson_messenger.display_messages_and_wait()
+    sleep(2)
+    gibson_messenger.wait_for_window_to_close()
+    
     if not user_terminal.active_user:
         print("Welcome to the terminal.")
         user_terminal.prompt_for_login()
+    
+    
     
     # Main command loop
     while not user_terminal.exit_requested:
