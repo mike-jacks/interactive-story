@@ -3,7 +3,11 @@
         "home": {
             "admin": {
                 "Desktop": {},
-                "Documents": {},
+                "Documents": {
+                    "Important": {
+                        "README.txt": "Welcome to the Gibson terminal."
+                    }
+                },
                 "Downloads": {},
                 "Movies": {},
                 "Music": {},
