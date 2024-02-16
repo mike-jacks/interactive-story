@@ -35,9 +35,6 @@ class Terminal:
             terminal_password = self.filesystem["/"]["etc"][".passwd"]
             if terminal_username and terminal_password:
                 self.login_user(terminal_username, terminal_password)
-            else:
-                # If credentials not provided, prompt for login
-                self.prompt_for_login()
         else:
             if terminal_username and terminal_password:
                 # Use provided credentials to create a new user and filesystem
@@ -58,7 +55,7 @@ class Terminal:
         
         # Check if the password file exists: if not, create it with a user asked password:
         if ".passwd" not in self.filesystem["/"]["etc"]:
-            self.filesystem["/"]["etc"][".passwd"] = "defaultPassword"
+            self.filesystem["/"]["etc"][".passwd"] = ""
             self.save_filesystem()
     
     
@@ -75,6 +72,7 @@ class Terminal:
             "rmdir": self.rmdir,
             "ifconfig": self.ifconfig,
             "ssh": self.ssh,
+            "setpasswd": self.set_password,
             #"messenger": self.mesenger,
             "help": self.terminal_help,
             "resetgame": self.reset_game,
@@ -88,7 +86,7 @@ class Terminal:
         self.login_user(username, password)
         
     def prompt_for_create_user(self):
-        print("Please create a new user.")
+        print("You need to create a new user before being able to login.")
         username = input("Create username: ")
         password = input("Create password: ")
         self.create_user(username, password)
@@ -108,7 +106,7 @@ class Terminal:
             "/": {
                 "home": {},
                 "etc": {
-                    ".passwd": "defaultPassword"
+                    ".passwd": ""
                     },
                 "var": {},
                 "tmp": {},
@@ -177,6 +175,9 @@ class Terminal:
                 return True
         if not user_found:
             print("Login failed. Invalid username or password.")
+            self.active_user = None
+            return False
+        return user_found
     
     def create_user(self, username, password):
         if any(user.username == username for user in self.valid_users):
@@ -515,7 +516,15 @@ class Terminal:
                 print(f"Invalid username.")
                 print("Disconnecting from terminal...")
                 return
-        
+    
+    def set_password(self, args):
+        if not args:
+            print("No password specified")
+            return
+        new_password = args[0]
+        self.filesystem["/"]["etc"][".passwd"] = new_password
+        self.active_user.password = new_password
+        print("Password updated successfully.")
     
     def ifconfig(self, args=[]):
         print(f"IP Address: {self.terminal_ip_address}")
@@ -569,17 +578,17 @@ user_terminal = Terminal(terminal_name="user_machine", terminal_ip_address="170.
 gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.112.29.87", terminal_username="admin", terminal_password="god")
 
 def main():
-    print("Welcome to the terminal. Please log in.")
-    user_terminal.prompt_for_login()
+    if not user_terminal.active_user:
+        print("Welcome to the terminal.")
+        user_terminal.prompt_for_login()
     
     # Main command loop
     while not user_terminal.exit_requested:
-        if not user_terminal.active_user:
-            print("No active session. Please log in.")
+        if user_terminal.active_user:
+            action = input(f"[{user_terminal.active_user.username}] {user_terminal.current_path} $ ")
+            user_terminal.execute(action)
+        else:
             user_terminal.prompt_for_login()
-            continue
-        action = input(f"[{user_terminal.active_user.username}] {user_terminal.current_path} $ ")
-        user_terminal.execute(action)
         if user_terminal.exit_requested:
             break
     print("Quit out of terminal successfully!")
