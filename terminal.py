@@ -495,13 +495,22 @@ class Terminal:
             target_terminal.ensure_password_file_exists()
             # Verify credentials
             user = next((u for u in target_terminal.valid_users if u.username == username), None)
+
+            if not hasattr(target_terminal, 'current_path'):
+                target_terminal.current_path = f"/home/{username}"
+            
+            # if not hasattr(target_terminal, 'active_user') and target_terminal.active_user is None:
+            #     target_terminal.active_user = user
+            
+            target_terminal.login_user(user.username, user.password)
+                
             if user:
                 self.ensure_password_file_exists()
                 if target_terminal.filesystem["/"]["etc"][".passwd"] == password:
                     print(f"Logged into {target_terminal.terminal_name} terminal as {username}.")
                     sleep(1)
                     while not target_terminal.exit_requested:
-                        action = input(f"[{username}] {target_terminal.current_path} $ ")
+                        action = input(f"{target_terminal.active_user.username}@{target_terminal.terminal_name}:{target_terminal.current_path}$ ")
                         target_terminal.execute(action)
                         if target_terminal.exit_requested:
                             target_terminal.exit_requested = False
