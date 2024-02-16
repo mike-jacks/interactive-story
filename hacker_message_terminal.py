@@ -28,7 +28,9 @@ class HackerMessageTerminal:
             script_file.write("clear\n")
             script_file.write(f'echo -n -e "\\033]0;{self.name}\\007"\n')
             for message in self.messages:
-                script_file.write(f'echo "{message}"\n')
+                script_file.write(f'echo -n "Hacker: ";')
+                self.animate_typing(message, script_file)
+                script_file.write(f'echo -n "\n";')
                 script_file.write("sleep 1\n")
             # Wait for an input to proceed
             script_file.write('echo "Press enter to continue..."\n')
@@ -51,6 +53,15 @@ class HackerMessageTerminal:
             else:
                 sleep(0.1)
         
+    def animate_typing(self, message, script_file, speed=0.1):
+        for letter in message:
+            # Directly use printf for each letter with proper escaping
+            escaped_letter = letter.replace("'", "'\\''")  # Escape single quotes correctly
+            script_file.write(f"printf '{escaped_letter}'; sleep {speed}; ")
+
+
+
+ 
     
     def stop(self):
         self.keep_running = False
@@ -58,7 +69,7 @@ class HackerMessageTerminal:
     
     
     @classmethod
-    def is_messages_terminal_open(title):
+    def is_messages_terminal_open(cls, title):
         # Check if the window with given title is still open.
         script = f'''tell application "Terminal"
                         set windowList to every window whose name contains "{title}"
@@ -72,11 +83,12 @@ class HackerMessageTerminal:
         return "true" in result.stdout.strip()
 
     @classmethod
-    def wait_for_window_to_close(title, timeout=60):
+    def wait_for_window_to_close(cls, title, timeout=60):
         """Wait for the Terminal window with the specified title to close."""
+        timeout = float(timeout)
         start_time = time()
         while time() - start_time < timeout:
-            if not HackerMessageTerminal.is_messages_terminal_open(title):
+            if not cls.is_messages_terminal_open(title):
                 print("Window closed, continuing...")
                 return True
             sleep(1)  # Poll every second
