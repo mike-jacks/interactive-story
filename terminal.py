@@ -20,29 +20,47 @@ class User:
 class Terminal:
     terminals: list['Terminal'] = []
 
-    def __init__(self, terminal_name: str, terminal_ip_address: str, terminal_username = None, terminal_password = None):
+    def __init__(self, terminal_name: str, terminal_ip_address: str, terminal_username = None, terminal_password = None) -> None:
         self.terminal_name = terminal_name
         self.terminal_ip_address = terminal_ip_address
         self.filesystem_filename = f"./filesystems/{terminal_name}_filesystem.json"
-        self.filesystem = self.load_filesystem()
-        self.valid_users = self.load_valid_users()
-        self.current_path = "/home"
+        self.filesystem_exists = os.path.exists(self.filesystem_filename)
+        self.valid_users: list[User] = []
         self.active_user = None
+        
+        if self.filesystem_exists:
+            self.filesystem = self.load_filesystem()
+            self.ensure_password_file_exists()
+            self.valid_users = self.load_valid_users()
+            terminal_password = self.filesystem["/"]["etc"][".passwd"]
+            if terminal_username and terminal_password:
+                self.login_user(terminal_username, terminal_password)
+            else:
+                # If credentials not provided, prompt for login
+                self.prompt_for_login()
+        else:
+            if terminal_username and terminal_password:
+                # Use provided credentials to create a new user and filesystem
+                self.create_user(terminal_username, terminal_password)
+            else:
+                # No filesystem exists, prompt to create a new user
+                self.prompt_for_create_user()
         # self.messeges = [[str]]
         # self.new_message = False
         Terminal.terminals.append(self)
         self.exit_requested = False
         self.commands = self.get_commands()
+    
+    def ensure_password_file_exists(self):
+        # Ensure the "etc" directory exists
+        if "etc" not in self.filesystem["/"]:
+            self.filesystem["/"]["etc"] = {}
         
-        if not self.valid_users and terminal_username and terminal_password:
-            # Only create a new user if no valid users exist and credentials are provided
-            self.login_or_create_user(terminal_username, terminal_password)
-        elif self.valid_users:
-            # If valid users exist, auto login if credentials are provided
-            self.active_user = self.valid_users[0]
-            self.current_path = f"/home/{self.active_user.username}"
-        else:
-            self.prompt_for_login_or_create_user()
+        # Check if the password file exists: if not, create it with a user asked password:
+        if ".passwd" not in self.filesystem["/"]["etc"]:
+            self.filesystem["/"]["etc"][".passwd"] = "defaultPassword"
+            self.save_filesystem()
+    
     
     def get_commands(self):
         return {
@@ -60,8 +78,20 @@ class Terminal:
             #"messenger": self.mesenger,
             "help": self.terminal_help,
             "resetgame": self.reset_game,
-            "exit()": self.exit,
+            "exit": self.exit,
         }
+    
+    def prompt_for_login(self):
+        print("Please log in.")
+        username = input("Enter your username: ")
+        password = input("Enter your password: ")
+        self.login_user(username, password)
+        
+    def prompt_for_create_user(self):
+        print("Please create a new user.")
+        username = input("Create username: ")
+        password = input("Create password: ")
+        self.create_user(username, password)
     
     def add_user(self, username: str, password: str) -> None:
         self.valid_users.append(User(username, password))
@@ -71,14 +101,45 @@ class Terminal:
             with open(self.filesystem_filename) as file:
                 return json.load(file)
         except FileNotFoundError:
-            print(f"Filesystem {self.filesystem_filename} not found. Creating new filesystem.")
-            new_filesystem = self.create_new_filesystem()
-            self.save_filesystem(new_filesystem)
-            return new_filesystem
+            return self.create_new_filesystem() # Create a new filesystem and immediately use it if one does not exist
     
     def create_new_filesystem(self):
-        base_structure = {"/": {"home": {}}}
-        self.save_filesystem(base_structure)
+        base_structure = {
+            "/": {
+                "home": {},
+                "etc": {
+                    ".passwd": "defaultPassword"
+                    },
+                "var": {},
+                "tmp": {},
+                "bin": {
+                    "pwd":None,
+                    "ls":None,
+                    "cd":None,
+                    "mkdir":None,
+                    "touch":None,
+                    "cat":None,
+                    "open":None,
+                    "rm":None,
+                    "rmdir":None,
+                    "ifconfig":None,
+                    "ssh":None,
+                    "help":None,
+                    "resetgame":None,
+                    "exit":None
+                    },
+                "dev": {},
+                "lib": {},
+                "mnt": {},
+                "opt": {},
+                "proc": {},
+                "root": {},
+                "sbin": {},
+                "srv": {},
+                "sys": {},
+                "usr": {}
+                }
+            }
         return base_structure
     
     def save_filesystem(self, filesystem=None):
@@ -90,7 +151,7 @@ class Terminal:
         valid_users = []
         home_dirs = self.filesystem.get("/", {}).get("home", {})
         for username, _ in home_dirs.items():
-            password_file_path = f"/home/{username}/.password"
+            password_file_path = f"/etc/.passwd"
             password = self.get_file_content(password_file_path)
             if password is not None:
                 valid_users.append(User(username, password))
@@ -105,61 +166,55 @@ class Terminal:
             else:
                 return None #File not found
         return node
-    
-    def prompt_for_login_or_create_user(self):
-        print("Welcome to the terminal!")
-        print("Please log in or create a new user.")
-        # This is a simplified interaction
-        while True:
-            choice = input("Do you have an login credentials? (y/n): ")
-            if choice.lower() in ["y", "n"]:
-                break
-            print("Invalid choice. Please enter 'y' or 'n'.")
-        if choice == "y":
-            while True:
-                username = input("Enter your username: ")
-                if " " in username:
-                    print("Username cannot contain spaces.")
-                    continue
-                password = input("Enter your password: ")
-                if " " in password:
-                    print("Password cannot contain spaces.")
-                    continue
-                break
-            self.login_or_create_user(username, password)
-        else:
-            while True:
-                username = input("Create username: ")
-                if " " in username:
-                    print("Username cannot contain spaces.")
-                    continue
-                password = input("Create password: ")
-                if " " in password:
-                    print("Password cannot contain spaces.")
-                    continue
-                break
-            self.login_or_create_user(username=username, password=password) 
-    
-    def login_or_create_user(self, username, password):
-        if not self.valid_users:
-            user = User(username, password)
-            self.valid_users.append(user)
-            self.create_user_home_directory(username)
-            self.active_user = user
-            self.current_path = f"/home/{self.active_user.username}"
-        else:
-            self.active_user = self.valid_users[0]
-            self.current_path = f"/home/{self.active_user.username}"
-        self.save_filesystem()
 
+    def login_user(self, username, password):
+        user_found = False
+        for user in self.valid_users:
+            if user.username == username and user.password == password:
+                self.active_user = user
+                self.current_path = f"/home/{self.active_user.username}"
+                user_found = True
+                return True
+        if not user_found:
+            print("Login failed. Invalid username or password.")
+    
+    def create_user(self, username, password):
+        if any(user.username == username for user in self.valid_users):
+            print(f"User '{username}' already exists. Please login.")
+            return False
+        
+        # Create and add the new user
+        user = User(username, password)
+        self.valid_users.append(user)
+        
+        # Initialize filesystem if it does not exist
+        if not self.filesystem_exists:
+            self.filesystem = self.create_new_filesystem()
+            
+        # Ensure the etc directory and password file exist before creating a user:
+        self.ensure_password_file_exists()
+        # Update the password file with the new user's password
+        self.filesystem["/"]["etc"][".passwd"] = password
+        
+        # Create home directory for the new user 
+        self.create_user_home_directory(username)
+        
+        # Set the newly created user as the active user
+        self.active_user = user
+        self.current_path = f"/home/{self.active_user.username}"
+        
+        # Save the updated filesystem
+        self.save_filesystem()
+        return True
+    
     def create_user_home_directory(self, username):
-        if not self.active_user:
-            print("No active user. Cannot create home directory.")
-            return
+        # Ensure the "home" directory exists
+        if "home" not in self.filesystem["/"]:
+            self.filesystem["/"]["home"] = {}
+            
+        # Create the new user's home directories
         base_dirs = ["Desktop", "Documents", "Downloads", "Movies", "Music", "Pictures"]
         user_home = {dir_name: {} for dir_name in base_dirs}
-        # Ensure active_user is not None before accessing password
-        user_home[".password"] = self.active_user.password  if self.active_user else "defaultPassword" # Example of setting the password file
         self.filesystem["/"]["home"][username] = user_home
         self.save_filesystem()
 
@@ -175,6 +230,9 @@ class Terminal:
             print(f"Error executing command: {e}")
 
     def pwd(self, args=[]):
+        if not self.active_user:
+            print("Error: No active session. Please log in.")
+            return
         if args:
             print("pwd does not take any arguments")
             return
@@ -423,31 +481,40 @@ class Terminal:
             return
         ip_address = args[0]
         target_terminal = next((t for t in Terminal.terminals if t.terminal_ip_address == ip_address), None)
+        if not target_terminal:
+            print(f"Terminal with IP address '{ip_address}' not found.")
+            return
         if target_terminal:
             print(f"Connecting to {ip_address}...")
             sleep(1)
             print(f"Connected to {ip_address}.")
             username = input("Enter username: ")
             password = input("Enter password: ")
+
+            target_terminal.ensure_password_file_exists()
             # Verify credentials
-        else:
-            print(f"Could not connect to {ip_address}.")
-            return
-        if any(u for u in target_terminal.valid_users if u.username == username and u.password == password):
-            print(f"Logged into {target_terminal.terminal_name} terminal as {username}.")
-            sleep(1)
-            while not target_terminal.exit_requested:
-                action = input(f"[{username}] {target_terminal.current_path} $ ")
-                target_terminal.execute(action)
-                if target_terminal.exit_requested:
-                    target_terminal.exit_requested = False
-                    break
-            print(f"Quit out of {target_terminal.terminal_name} terminal successfully!")
-            return
-        else:
-            print("Invalid username or password.")
-            print("Disconnecting from terminal...")
-            return
+            user = next((u for u in target_terminal.valid_users if u.username == username), None)
+            if user:
+                self.ensure_password_file_exists()
+                if target_terminal.filesystem["/"]["etc"][".passwd"] == password:
+                    print(f"Logged into {target_terminal.terminal_name} terminal as {username}.")
+                    sleep(1)
+                    while not target_terminal.exit_requested:
+                        action = input(f"[{username}] {target_terminal.current_path} $ ")
+                        target_terminal.execute(action)
+                        if target_terminal.exit_requested:
+                            target_terminal.exit_requested = False
+                            break
+                    print(f"Quit out of {target_terminal.terminal_name} terminal successfully!")
+                    return
+                else:
+                    print("Invalid username or password.")
+                    print("Disconnecting from terminal...")
+                    return
+            else:
+                print(f"Invalid username.")
+                print("Disconnecting from terminal...")
+                return
         
     
     def ifconfig(self, args=[]):
@@ -502,7 +569,15 @@ user_terminal = Terminal(terminal_name="user_machine", terminal_ip_address="170.
 gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.112.29.87", terminal_username="admin", terminal_password="god")
 
 def main():
+    print("Welcome to the terminal. Please log in.")
+    user_terminal.prompt_for_login()
+    
+    # Main command loop
     while not user_terminal.exit_requested:
+        if not user_terminal.active_user:
+            print("No active session. Please log in.")
+            user_terminal.prompt_for_login()
+            continue
         action = input(f"[{user_terminal.active_user.username}] {user_terminal.current_path} $ ")
         user_terminal.execute(action)
         if user_terminal.exit_requested:
