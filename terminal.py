@@ -125,6 +125,15 @@ class Terminal:
         except FileNotFoundError:
             return self.create_new_filesystem() # Create a new filesystem and immediately use it if one does not exist
     
+    def save_filesystem(self, filesystem=None):
+        filesystem = filesystem or self.filesystem
+        
+        # Check if the filesystems directory exists, create it if not
+        if not os.path.exists("./filesystems"):
+            os.makedirs("./filesystems")
+        with open(self.filesystem_filename, "w") as file:
+            json.dump(filesystem, file, indent=4)
+            
     def create_new_filesystem(self):
         base_structure = {
             "/": {
@@ -163,11 +172,6 @@ class Terminal:
                 }
             }
         return base_structure
-    
-    def save_filesystem(self, filesystem=None):
-        filesystem = filesystem or self.filesystem
-        with open(self.filesystem_filename, "w") as file:
-            json.dump(filesystem, file, indent=4)
     
     def load_valid_users(self):
         valid_users = []
