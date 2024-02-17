@@ -5,6 +5,7 @@ from text_color import TextColor
 from ascii_animation import play_ascii_animation, load_ascii_art_animation_from_json, clean_up_ascii_art_animation
 from time import sleep
 import re, sys
+import json
 from messenger_terminal import MessageTerminal, HackerMessenger, CorporationMessenger
 from terminal import Terminal
 
@@ -45,22 +46,11 @@ def prompt_to_reload_terminal():
         else:
             print("Invalid input. Please enter 'yes|y' or 'no|n'.")
 
-def main():
-    # Clear Screen
-    Utility.clear_screen()
-    
-    # Initialize Terminals
-    user_terminal = Terminal(terminal_name="localhost", terminal_ip_address="127.0.0.1")
-    gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.127.11.23", terminal_username="admin", terminal_password="god")
-    microsoft_terminal = Terminal(terminal_name="microsoft", terminal_ip_address="18.23.123.11", terminal_username="root", terminal_password="M$FT")
-    apple_terminal = Terminal(terminal_name="apple", terminal_ip_address="182.124.12.132", terminal_username="apple", terminal_password="M@c1nt0sh")
-    
-    # Initialize Messengers
-    hacker_messenger = Terminal.messengers[0]
-    gibson_messenger = gibson_terminal.messenger
-    microsoft_messenger = microsoft_terminal.messenger
-    apple_messenger = apple_terminal.messenger
-    
+def load_mission_messages(mission):
+    fobj = open("messages.json")
+    data = json.load(fobj)
+
+def template(user_terminal, gibson_terminal, microsoft_terminal, apple_terminal, hacker_messenger, gibson_messenger, microsoft_messenger, apple_messenger):
     # Hacker Message 1:
     hacker_messages = [
         f"Hi {user_terminal.valid_users[0].username}!\n",
@@ -136,9 +126,79 @@ def main():
             ]
             add_and_display_messages_from_hacker_messenger(hacker_messages, animate=True)
             prompt_to_reload_terminal()
+
+def mission1(msg_lst, user_terminal, hacker_messenger, gibson_terminal, gibson_messenger):
+    addendum = [
+        "P.S. Once logged into a terminal type\n'help' to see a list of commands you can use.\n",
+        f"P.P.S. Just a reminder your username is:\n\"{user_terminal.valid_users[0].username}\"\nand your password is: \n\"{user_terminal.filesystem["/"]["etc"][".passwd"]}\"\nin case you forgot.\n"
+    ]
+    msg_lst.extend(addendum)
+    add_and_display_messages_from_hacker_messenger(msg_lst, animate = True)
+
+    # Add gibson credential files to user filesystem
+    user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.txt",
+    f"""Gibson Terminal Credentials
+    ---------------------------
+    IP Address: {gibson_terminal.terminal_ip_address}
+    Username: {gibson_terminal.valid_users[0].username}
+    Password: {gibson_terminal.filesystem["/"]["etc"][".passwd"]}
+    ---------------------------
+    """)
+
+    gibson_terminal.add_file_to_filesystem(f"/var/log", "connections.log",
+    f"""==========================
+    Remote Connections Log
+    ==========================
+    addr::10.128.13.42
+    usr::admin
+    passwd::changeme
+    --------------------------
+    new conn
+    addr::<>
+    usr::<>
+    passwd::<>
+    """)
+
+    completed = False
+    while not completed:
+        access_terminal(user_terminal)
+        if "connections.log" not in gibson_terminal.filesystem["/"]["var"]["log"]:
+            completed = True
+        else:
+            msgs = [
+                "I can see you haven't deleted the log file.",
+                "You haven't completed the mission.",
+                "Maybe I was wrong about you..."
+            ]
+            add_and_display_messages_from_hacker_messenger(msgs, animate = True)
+            prompt_to_reload_terminal()
+    user_terminal.active_user = None
+ 
+def main():
+    # Clear Screen
+    Utility.clear_screen()
     
+    # Initialize Terminals
+    user_terminal = Terminal(terminal_name="localhost", terminal_ip_address="127.0.0.1")
+    gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.127.11.23", terminal_username="admin", terminal_password="god")
+    microsoft_terminal = Terminal(terminal_name="microsoft", terminal_ip_address="18.23.123.11", terminal_username="root", terminal_password="M$FT")
+    apple_terminal = Terminal(terminal_name="apple", terminal_ip_address="182.124.12.132", terminal_username="apple", terminal_password="M@c1nt0sh")
+
+    # Initialize Messengers
+    hacker_messenger = Terminal.messengers[0]
+    gibson_messenger = gibson_terminal.messenger
+    microsoft_messenger = microsoft_terminal.messenger
+    apple_messenger = apple_terminal.messenger
+
+    fobj = open("messages.json")
+    msgs = json.load(fobj)
+    fobj.close()
     
-    
+    # for debug purposes
+    if False:
+        template(user_terminal, gibson_terminal, microsoft_terminal, apple_terminal, hacker_messenger, gibson_messenger, microsoft_messenger, apple_messenger)
+    else:
+        mission1(msgs["1"], user_terminal, hacker_messenger, gibson_terminal, gibson_messenger)
     
     
     
