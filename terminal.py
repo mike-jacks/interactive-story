@@ -74,6 +74,7 @@ class Terminal:
             "mkdir": self.mkdir,
             "touch": self.touch,
             "echo": self.echo,
+            "find": self.find,
             "cat": self.cat,
             "open": self.open_file,
             "rm": self.rm,
@@ -125,6 +126,15 @@ class Terminal:
         except FileNotFoundError:
             return self.create_new_filesystem() # Create a new filesystem and immediately use it if one does not exist
     
+    def save_filesystem(self, filesystem=None):
+        filesystem = filesystem or self.filesystem
+        
+        # Check if the filesystems directory exists, create it if not
+        if not os.path.exists("./filesystems"):
+            os.makedirs("./filesystems")
+        with open(self.filesystem_filename, "w") as file:
+            json.dump(filesystem, file, indent=4)
+            
     def create_new_filesystem(self):
         base_structure = {
             "/": {
@@ -163,11 +173,6 @@ class Terminal:
                 }
             }
         return base_structure
-    
-    def save_filesystem(self, filesystem=None):
-        filesystem = filesystem or self.filesystem
-        with open(self.filesystem_filename, "w") as file:
-            json.dump(filesystem, file, indent=4)
     
     def load_valid_users(self):
         valid_users = []
@@ -244,7 +249,10 @@ class Terminal:
         self.save_filesystem()
 
     def execute(self, command):
-        args = command.split()
+        trimmed_command = command.strip()
+        if not trimmed_command:
+            return
+        args = trimmed_command.split()
         action = args[0]
         try:
             if action in self.commands:
@@ -382,44 +390,82 @@ class Terminal:
     
     def cat(self, args):
         if not args:
-            print("No file name specified")
+            print("Usage: cat <filename or path>")
             return
+        
         filename = args[0]
-        node = self.filesystem["/"]
-        parts = self.current_path.strip("/").split("/")
+        # Determine the full path to the file
+        if filename.startswith("/"):
+            parts = filename.strip("/").split("/")
+            file_name = parts.pop()
+            node = self.filesystem["/"]
+        else:
+            # Relative path
+            parts = (self.current_path.strip("/") + "/" + filename).strip("/").split("/")
+            file_name = parts.pop()
+            node = self.filesystem["/"]
+        
+        # Split the full path into parts and traverse the filesystem
         for part in parts:
+            if part in "":
+                continue # Skip empty parts from consecutive slashes
             if part in node:
                 node = node[part]
             else:
                 print(f"Path '{'/'.join(parts)}' not found.")
                 return
-        if filename in node and isinstance(node[filename], str):
-            print(rf"{node[filename]}")
+        
+        # Check if the file exists and print its content
+        if file_name in node and isinstance(node[file_name], str) and node[file_name]:
+            print(rf"{node[file_name]}")
+        elif file_name in node and isinstance(node[file_name], str) and not node[file_name]:
+            print(f"{file_name} is not a readable file.")
+        elif file_name in node and isinstance(node[file_name], list):
+            print(f"'{file_name}' is a movie. Try using open instead.")
+        elif file_name in node and isinstance(node[file_name], dict):
+            print(f"{file_name} is a directory.")
         else:
-            print(f"'{filename}' is not a readable file.")
+            print(f"File '{file_name}' not found.")
     
     def open_file(self, args):
         if not args:
             print("No file name specified")
             return
+
         filename = args[0]
-        node = self.filesystem["/"]
-        parts = self.current_path.strip("/").split("/")
+        # Determine the full path to the file
+        if filename.startswith("/"):
+            parts = filename.strip("/").split("/")
+            file_name = parts.pop()
+            node = self.filesystem["/"]
+        else:
+            # Relative path
+            parts = (self.current_path.strip("/") + "/" + filename).strip("/").split("/")
+            file_name = parts.pop()
+            node = self.filesystem["/"]
+        
+        # Split the full path into parts and traverse the filesystem
         for part in parts:
+            if part in "":
+                continue # Skip empty parts from consecutive slashes
             if part in node:
                 node = node[part]
             else:
                 print(f"Path '{'/'.join(parts)}' not found.")
                 return
-        if filename in node and isinstance(node[filename], str):
-            print(node[filename])
-        elif filename in node and isinstance(node[filename], list):
+        if file_name in node and isinstance(node[file_name], str):
+            print(node[file_name])
+        elif file_name in node and isinstance(node[file_name], list):
             Utility.clear_screen()
             Utility.hide_cursor()
-            play_ascii_animation(node[filename], frames_per_second=12, loop_num_times=-2)
+            play_ascii_animation(node[file_name], frames_per_second=12, loop_num_times=-2)
             Utility.show_cursor()
+        elif file_name in node and isinstance(node[file_name], dict):
+            print(f"{file_name} is a directory.")
+        elif file_name in node and isinstance(node[file_name], None):
+            print(f"'{file_name}' is not a readable file.")
         else:
-            print(f"'{filename}' is not a readable file.")
+            print(f"File '{file_name}' not found.")
     
     def rm(self, args):
         if not args:
@@ -607,7 +653,7 @@ class Terminal:
         else:
             print("Game reset cancelled.")
     
-    def add_file_to_filesystem(self, path: str, filename: str, content=None):
+    def _add_file_to_filesystem(self, path: str, filename: str, content=None):
         """
         Adds a file to the specified path in the filesystem. If the path does not exist, it is created.
         
@@ -663,11 +709,74 @@ class Terminal:
 
         # Handle file writing or appending
         if mode == "overwrite":
-            self.add_file_to_filesystem(self.current_path, filename, text)
+            self._add_file_to_filesystem(self.current_path, filename, text)
         elif mode == "append":
-            self.append_to_file(self.current_path, filename, text)
-
-    def append_to_file(self, path, filename, content):
+            self._append_to_file(self.current_path, filename, text)
+    
+    def find(self, args=[]):
+        # Check if there are no arguments or the first argument is only '-a' or '-al' without a filename
+        if not args or (args[0] == '-a' and len(args) == 1) or (args[0] == '-al' and len(args) == 1):
+            print("Usage: find [-a] <filename> [path]")
+            return
+        
+        show_hidden = False
+        if args[0] == "-a" or args[0] == "-al":
+            show_hidden = True
+            args.pop(0)  # Remove the flag from the arguments
+            
+        if not args or args[0] == "":
+            print("Missing filename argument.")
+            
+        search_term = args[0]
+        start_path = self.current_path
+        
+        # Check if a path argument is given
+        if len(args) > 1:
+            # Check if the provided path is absolute or relative
+            if args[1].startswith('/'):
+                start_path = args[1]
+            else:
+                # If the path is not absolute, construct it relative to the current directory
+                start_path = os.path.join(self.current_path, args[1]).replace("//", "/")
+        
+        def search_directory(directory, term, show_hidden, path):
+            found_items = []
+            for item, content in directory.items():
+                # Construct the full path of the item
+                item_path = os.path.join(path, item).replace("//", "/")
+                # Check if the item is a directory or a file
+                if isinstance(content, dict): # it's a directory
+                    if (show_hidden or not item.startswith(".")) and term in item:
+                        found_items.append(item_path + '/')
+                    # Recursively search in the directory
+                    found_items += search_directory(content, term, show_hidden, item_path)
+                else:   # File
+                    if (show_hidden or not item.startswith(".")) and term in item:
+                        found_items.append(item_path)
+            return found_items
+    
+        # Convert start_path to directory structures
+        parts = start_path.strip("/").split("/")
+        node = self.filesystem["/"]
+        for part in parts:
+            if part: # avoid empty strings
+                try:
+                    node = node[part]
+                except KeyError:
+                    print(f"Path '{start_path}' not found.")
+                    return
+        
+        # Perform the search
+        found_paths = search_directory(node, search_term, show_hidden, start_path)
+        if found_paths:
+            for path in found_paths:
+                print(path)
+            print()
+        else:
+            print(f"No matches found for {search_term}\n")
+                        
+                        
+    def _append_to_file(self, path, filename, content):
         """Appends content to a file, creating the file if it doesn't exist."""
         # Ensure path consistency and load or create the filesystem
         full_path = os.path.join(path, filename).strip("/")

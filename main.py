@@ -61,25 +61,26 @@ def main():
     microsoft_messenger = microsoft_terminal.messenger
     apple_messenger = apple_terminal.messenger
     
-    # Hacker Message 1:
-    hacker_messages = [
-        f"Hi {user_terminal.valid_users[0].username}!\n",
-        "I'm a hacker and I hear you are a pretty\ngood hacker yourself!\n",
-        "I need your help to modify files on the\nGibson terminal.\n",
-        "For some reason I can't write or modify\nfiles on the Gibson terminal, only read\n",
-        "I have placed a file in your Downloads\nfolder for you to gain access.\n",
-        "Please change the password of the admin\nuser to 'hacked'.\n",
-        "Once completed, please log out of your\nterminal and I will message you with further instructions.\n",
-        "I am watching you...\n",
-        "P.S. Once logged into a terminal type\n'help' to see a list of commands you can use in the terminal.\n",
-        f"P.P.S. Just a reminder your username is:\n\"{user_terminal.valid_users[0].username}\"\nand your password is: \n\"{user_terminal.filesystem["/"]["etc"][".passwd"]}\"\nin case you forgot.\n",
-    ]
-    # Display Hacker Messages to messenger terminal
-    add_and_display_messages_from_hacker_messenger(hacker_messages, animate=True)
+    # # Hacker Message 1:
+    # hacker_messages = [
+    #     f"Hi {user_terminal.valid_users[0].username}!\n",
+    #     "I'm a hacker and I hear you are a pretty\ngood hacker yourself!\n",
+    #     "I need your help to modify files on the\nGibson terminal.\n",
+    #     "For some reason I can't write or modify\nfiles on the Gibson terminal, only read\n",
+    #     "I have placed a file in your Downloads\nfolder for you to gain access.\n",
+    #     "Please change the password of the admin\nuser to 'hacked'.\n",
+    #     "Once completed, please log out of your\nterminal and I will message you with further instructions.\n",
+    #     "I am watching you...\n",
+    #     "P.S. Once logged into a terminal type\n'help' to see a list of commands you can use in the terminal.\n",
+    #     f"P.P.S. Just a reminder your username is:\n\"{user_terminal.valid_users[0].username}\"\nand your password is: \n\"{user_terminal.filesystem["/"]["etc"][".passwd"]}\"\nin case you forgot.\n",
+    # ]
+    # # Display Hacker Messages to messenger terminal
+    # add_and_display_messages_from_hacker_messenger(hacker_messages, animate=True)
     
     # Add gibson credential files to user filesystem
-    user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.txt",
-    f"""Gibson Terminal Credentials
+    user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.txt",
+    f"""    
+    Gibson Terminal Credentials
     ---------------------------
     IP Address: {gibson_terminal.terminal_ip_address}
     Username: {gibson_terminal.valid_users[0].username}
