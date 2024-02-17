@@ -78,7 +78,7 @@ def main():
     # add_and_display_messages_from_hacker_messenger(hacker_messages, animate=True)
     
     # Add gibson credential files to user filesystem
-    user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.txt",
+    user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.txt",
     f"""    
     Gibson Terminal Credentials
     ---------------------------
