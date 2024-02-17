@@ -386,21 +386,25 @@ class Terminal:
     
     def cat(self, args):
         if not args:
-            print("No file name specified")
+            print("Usage: cat <filename or path>")
             return
+        
         filename = args[0]
         # Determine the full path to the file
         if filename.startswith("/"):
-            # Absolute path
-            full_path = filename
+            parts = filename.strip("/").split("/")
+            file_name = parts.pop()
+            node = self.filesystem["/"]
         else:
             # Relative path
-            full_path = self.current_path + ("/" if not self.current_path.endswith("/") else "") + filename
+            parts = (self.current_path.strip("/") + "/" + filename).strip("/").split("/")
+            file_name = parts.pop()
+            node = self.filesystem["/"]
         
         # Split the full path into parts and traverse the filesystem
-        node = self.filesystem["/"]
-        parts = full_path.split("/")
-        for part in parts[:-1]:
+        for part in parts:
+            if part in "":
+                continue # Skip empty parts from consecutive slashes
             if part in node:
                 node = node[part]
             else:
@@ -408,10 +412,16 @@ class Terminal:
                 return
         
         # Check if the file exists and print its content
-        if filename in node and isinstance(node[filename], str) and node[filename]:
-            print(rf"{node[filename]}")
+        if file_name in node and isinstance(node[file_name], str) and node[file_name]:
+            print(rf"{node[file_name]}")
+        elif file_name in node and isinstance(node[file_name], str) and not node[file_name]:
+            print(f"{file_name} is unreadable.")
+        elif file_name in node and isinstance(node[file_name], list):
+            print(f"'{file_name}' is a movie. Try using open instead.")
+        elif file_name in node and isinstance(node[file_name], dict):
+            print(f"{file_name} is a directory.")
         else:
-            print(f"'{filename}' is not a readable file.")
+            print(f"File '{file_name}' not found.")
     
     def open_file(self, args):
         if not args:
