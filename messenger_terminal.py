@@ -6,6 +6,7 @@ import tempfile
 from time import sleep, time
 from abc import ABC, abstractmethod
 from text_color import TextColor
+from utility import Utility
 
 class MessageTerminal(ABC):
      
@@ -28,17 +29,22 @@ class MessageTerminal(ABC):
         for message in messages:
             self.messages[-1].append(message)
     
-    def display_messages_and_wait(self):
+    def display_messages_and_wait(self, animate: bool = False):
+        Utility.hide_cursor()
         # Generate a script to display all messages and wait for an input.
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.sh') as script_file:
             script_file.write("#!/bin/zsh\n")
             script_file.write("clear\n")
             script_file.write(f'echo -n -e "\\033]0;{self.window_name}\\007"\n')
-            for message in self.messages[-1]:
-                script_file.write(f'echo -n "{self.terminal_text_color.value}{self.window_name}: ";')
-                self.animate_typing(message, script_file)
-                script_file.write(f'echo -n "\n";')
-                script_file.write("sleep 1\n")
+            if animate:
+                for message in self.messages[-1]:
+                    script_file.write(f'echo -n "{self.terminal_text_color.value}{self.window_name}: ";')
+                    self.animate_typing(message, script_file)
+                    script_file.write(f'echo -n "\n";')
+                    script_file.write("sleep 1\n")
+            else:
+                for message in self.messages[-1]:
+                    script_file.write(f'echo "{self.terminal_text_color.value}{self.window_name}: {message}"\n')
             # Wait for an input to proceed
             script_file.write('echo "Press enter to continue..."\n')
             script_file.write('read varname\n')
@@ -89,7 +95,8 @@ class MessageTerminal(ABC):
         start_time = time()
         while time() - start_time < timeout:
             if not self.is_messages_terminal_open():
-                print("Window closed, continuing...")
+                print(f"You have discnnected from {self.window_name}'s messenger service...")
+                Utility.show_cursor()
                 return True
             sleep(1)  # Poll every second
         print("Timeout waiting for window to close.")
