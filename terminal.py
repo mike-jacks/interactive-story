@@ -5,6 +5,8 @@ from text_color import TextColor
 from ascii_animation import play_ascii_animation, load_ascii_art_animation_from_json
 from time import sleep, time
 from messenger_terminal import HackerMessenger, CorporationMessenger, MessageTerminal
+from animation import Animation
+from sound import Sound
 
 class User:
     def __init__(self, username: str, password: str) -> None:
@@ -29,7 +31,7 @@ class Terminal:
         self.filesystem_exists = os.path.exists(self.filesystem_filename)
         self.valid_users: list[User] = []
         self.active_user = None
-        self.messenger = CorporationMessenger(self.terminal_name)
+        self.messenger = CorporationMessenger(terminal_name)
         self.messenger_messages: list[list[str]] = [[]]
         Terminal.messengers.append(self.messenger)
         
@@ -79,29 +81,36 @@ class Terminal:
             "ifconfig": self.ifconfig,
             "ssh": self.ssh,
             "setpasswd": self.set_password,
-            "messenger": self.mesenger,
+            "messenger": self.messenger_window,
+            "clear": self.clear_screen,
             "help": self.terminal_help,
             "resetgame": self.reset_game,
             "exit": self.exit,
         }
     
-    def mesenger(self, args=[]):
+    def messenger_window(self, args=[]):
         # display hacker messenger window with the last item in the messages list
-        if self.messages:
+        if self.hacker_messages:
             hacker_terminal = Terminal.messengers[0]
-            hacker_terminal.enqueue_messages(self.messages[-1])
+            hacker_terminal.enqueue_messages(self.hacker_messages[-1])
             hacker_terminal.display_messages_and_wait()
             sleep(2)
             hacker_terminal.wait_for_window_to_close()
     
     def prompt_for_login(self):
-        print("Please log in.")
+        Utility.hide_cursor()
+        login_text_thread = Animation.animated_text(static_text="", animated_text="Please log in.", end_text="\n", delay_between_chars=0.1)
+        login_text_thread.stop(0.5)
+        Utility.show_cursor()
         username = input("Enter your username: ")
         password = input("Enter your password: ")
         self.login_user(username, password)
         
     def prompt_for_create_user(self):
-        print("You need to create a new user before being able to login.")
+        Utility.hide_cursor()
+        create_new_user_text_thread = Animation.animated_text(static_text="", animated_text="You need to create a new user before being able to login.", end_text="\n", delay_between_chars=0.1)
+        create_new_user_text_thread.stop(0.5)
+        Utility.show_cursor()
         username = input("Create username: ")
         password = input("Create password: ")
         self.create_user(username, password)
@@ -508,26 +517,20 @@ class Terminal:
             print(f"Terminal with IP address '{ip_address}' not found.")
             return
         if target_terminal:
-            print(f"Connecting to {ip_address}...")
-            sleep(1)
-            print(f"Connected to {ip_address}.")
+            connecting_to_ip_text_thread = Animation.animated_text(static_text=f"Connecting to {ip_address}", animated_text=f"...", end_text="Connected\n", delay_between_chars=0.2, continue_thread_after_stop_for=0.1)
+            Sound.play(Sound.CONNECTING_TO_COMPUTER_OVER_MODEM_SHORT, pause = 9)
+            connecting_to_ip_text_thread.stop(1)
             username = input("Enter username: ")
-            password = input("Enter password: ")
-
+            
             target_terminal.ensure_password_file_exists()
-            # Verify credentials
-            user = next((u for u in target_terminal.valid_users if u.username == username), None)
 
-            if not hasattr(target_terminal, 'current_path'):
-                target_terminal.current_path = f"/home/{username}"
+            user = next((u for u in target_terminal.valid_users if u.username == username), None)
             
-            # if not hasattr(target_terminal, 'active_user') and target_terminal.active_user is None:
-            #     target_terminal.active_user = user
-            
-            target_terminal.login_user(user.username, user.password)
-                
             if user:
-                self.ensure_password_file_exists()
+                # Set the active user and current path
+                target_terminal.active_user = user
+                target_terminal.current_path = f"/home/{username}"
+                password = input("Enter password: ")
                 if target_terminal.filesystem["/"]["etc"][".passwd"] == password:
                     print(f"Logged into {target_terminal.terminal_name} terminal as {username}.")
                     sleep(1)
@@ -556,6 +559,7 @@ class Terminal:
         self.filesystem["/"]["etc"][".passwd"] = new_password
         self.active_user.password = new_password
         print("Password updated successfully.")
+        self.save_filesystem()
     
     def ifconfig(self, args=[]):
         print(f"IP Address: {self.terminal_ip_address}")
@@ -568,12 +572,19 @@ class Terminal:
         print("cd - change directory")
         print("mkdir - make directory")
         print("touch - create file")
+        print("echo - write to file")
         print("cat - print file contents")
         print("open - open file")
         print("rm - remove file")
         print("rmdir - remove directory")
         print("ifconfig - get ip address")
-        print("exit() - exit terminal")
+        print("ssh - connect to another terminal")
+        print("setpasswd - set password")
+        print("messenger - open hacker messenger window")
+        print("clear - clear the terminal screen")
+        print("help - display this help message")
+        print("resetgame - reset the game")
+        print("exit - exit active terminal")
         print()
 
     def reset_game(self, args=[]):
@@ -678,6 +689,8 @@ class Terminal:
         
         self.save_filesystem()
 
+    def clear_screen(self, args=[]):
+        Utility.clear_screen()
     
     def exit(self, args=[]):
         print("Exiting terminal...")
@@ -687,54 +700,58 @@ class Terminal:
 
 
 
-Utility.clear_screen()
-# Create a few terminals
-user_terminal = Terminal(terminal_name="user_machine", terminal_ip_address="170.130.234.11")
-gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.112.29.87", terminal_username="admin", terminal_password="god")
-gibson_terminal.add_file_to_filesystem("/home/admin/Documents/Important", "README.txt", "Welcome to the Gibson terminal.")
+# Utility.clear_screen()
+# # Create a few terminals
+# user_terminal = Terminal(terminal_name="localhost", terminal_ip_address="170.130.234.11")
+# gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.112.29.87", terminal_username="admin", terminal_password="god")
+# gibson_terminal.add_file_to_filesystem("/home/admin/Documents/Important", "README.txt", "Welcome to the Gibson terminal.")
 
 def main():
-    hacker_messenger = Terminal.messengers[0]
-    gibson_messenger = gibson_terminal.messenger
+    pass
+#     hacker_messenger = Terminal.messengers[0]
+#     gibson_messenger = gibson_terminal.messenger
 
-    # Enqueue messages to be displayed in the hacker terminal
-    hacker_messages = [
-        f"Hi {user_terminal.valid_users[0].username}!",
-        "I'm a hacker and I know you are a hacker too!",
-        "I need your help to modify files on the Gibson terminal.",
-        "Something is wrong, and I only have read acces.",
-        "I have sent document with the ip address and login credentials for you to ssh into to your Downloads folder.",
-        "Please change the password of the admin user to 'hacked'.",
-        "I will be in touch...",
-    ]
+#     # Enqueue messages to be displayed in the hacker terminal
+#     hacker_messages = [
+#         f"Hi {user_terminal.valid_users[0].username}!",
+#         "I'm a hacker and I know you are a hacker too!",
+#         "I need your help to modify files on the Gibson terminal.",
+#         "Something is wrong, and I only have read acces.",
+#         "I have sent document with the ip address and login credentials for you to ssh into to your Downloads folder.",
+#         "Please change the password of the admin user to 'hacked'.",
+#         "I will be in touch...",
+#     ]
     
-    hacker_messenger.enqueue_messages(hacker_messages)
-    hacker_messenger.display_messages_and_wait()
-    sleep(2)
-    hacker_messenger.wait_for_window_to_close()
-    user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Documents", "gibson_info.txt", f"{gibson_terminal.terminal_ip_address}\n{gibson_terminal.valid_users[0].username}\n{gibson_terminal.valid_users[0].password}")
+#     hacker_messenger.enqueue_messages(hacker_messages)
+#     hacker_messenger.display_messages_and_wait()
+#     sleep(2)
 
-    gibson_messenger.enqueue_messages(["You mother fucker!", "How dare you hack in and change my password!", "You will pay for this you piss ant!"])
-    gibson_messenger.display_messages_and_wait()
-    sleep(2)
-    gibson_messenger.wait_for_window_to_close()
+#     gibson_messenger.enqueue_messages(["You mother fucker!", "How dare you hack in and change my password!", "You will pay for this you piss ant!"])
+#     gibson_messenger.display_messages_and_wait()
+#     sleep(2)
+#     hacker_messenger.wait_for_window_to_close()
+#     user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Documents",
+#                                          "gibson_info.txt",
+# f"""    ip_address: {gibson_terminal.terminal_ip_address}
+#     Username: {gibson_terminal.valid_users[0].username}
+#     Password: {gibson_terminal.valid_users[0].password}
+#     """)
+#     gibson_messenger.wait_for_window_to_close()
     
-    if not user_terminal.active_user:
-        print("Welcome to the terminal.")
-        user_terminal.prompt_for_login()
+#     if not user_terminal.active_user:
+#         print("Welcome to the terminal.")
+#         user_terminal.prompt_for_login()
     
-    
-    
-    # Main command loop
-    while not user_terminal.exit_requested:
-        if user_terminal.active_user:
-            action = input(f"{user_terminal.active_user.username}@{user_terminal.terminal_name}:{user_terminal.current_path}$ ")
-            user_terminal.execute(action)
-        else:
-            user_terminal.prompt_for_login()
-        if user_terminal.exit_requested:
-            break
-    print("Quit out of terminal successfully!")
+#     # Main command loop
+#     while not user_terminal.exit_requested:
+#         if user_terminal.active_user:
+#             action = input(f"{user_terminal.active_user.username}@{user_terminal.terminal_name}:{user_terminal.current_path}$ ")
+#             user_terminal.execute(action)
+#         else:
+#             user_terminal.prompt_for_login()
+#         if user_terminal.exit_requested:
+#             break
+#     print("Quit out of terminal successfully!")
 
 if __name__ == "__main__":
     main()
