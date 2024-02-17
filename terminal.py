@@ -99,7 +99,7 @@ class Terminal:
     
     def prompt_for_login(self):
         Utility.hide_cursor()
-        login_text_thread = Animation.animated_text(static_text="", animated_text="Please log in.", end_text="\n", delay_between_chars=0.1)
+        login_text_thread = Animation.animated_text(static_text="", animated_text="Please log in.", end_text="\n", delay_between_chars=0.02)
         login_text_thread.stop(0.5)
         Utility.show_cursor()
         username = input("Enter your username: ")
@@ -108,7 +108,7 @@ class Terminal:
         
     def prompt_for_create_user(self):
         Utility.hide_cursor()
-        create_new_user_text_thread = Animation.animated_text(static_text="", animated_text="You need to create a new user before being able to login.", end_text="\n", delay_between_chars=0.1)
+        create_new_user_text_thread = Animation.animated_text(static_text="", animated_text="You need to create a new user before being able to login.", end_text="\n", delay_between_chars=0.02)
         create_new_user_text_thread.stop(0.5)
         Utility.show_cursor()
         username = input("Create username: ")
