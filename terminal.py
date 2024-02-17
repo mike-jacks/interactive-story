@@ -248,7 +248,10 @@ class Terminal:
         self.save_filesystem()
 
     def execute(self, command):
-        args = command.split()
+        trimmed_command = command.strip()
+        if not trimmed_command:
+            return
+        args = trimmed_command.split()
         action = args[0]
         try:
             if action in self.commands:
@@ -415,7 +418,7 @@ class Terminal:
         if file_name in node and isinstance(node[file_name], str) and node[file_name]:
             print(rf"{node[file_name]}")
         elif file_name in node and isinstance(node[file_name], str) and not node[file_name]:
-            print(f"{file_name} is unreadable.")
+            print(f"{file_name} is not a readable file.")
         elif file_name in node and isinstance(node[file_name], list):
             print(f"'{file_name}' is a movie. Try using open instead.")
         elif file_name in node and isinstance(node[file_name], dict):
@@ -427,24 +430,41 @@ class Terminal:
         if not args:
             print("No file name specified")
             return
+
         filename = args[0]
-        node = self.filesystem["/"]
-        parts = self.current_path.strip("/").split("/")
+        # Determine the full path to the file
+        if filename.startswith("/"):
+            parts = filename.strip("/").split("/")
+            file_name = parts.pop()
+            node = self.filesystem["/"]
+        else:
+            # Relative path
+            parts = (self.current_path.strip("/") + "/" + filename).strip("/").split("/")
+            file_name = parts.pop()
+            node = self.filesystem["/"]
+        
+        # Split the full path into parts and traverse the filesystem
         for part in parts:
+            if part in "":
+                continue # Skip empty parts from consecutive slashes
             if part in node:
                 node = node[part]
             else:
                 print(f"Path '{'/'.join(parts)}' not found.")
                 return
-        if filename in node and isinstance(node[filename], str):
-            print(node[filename])
-        elif filename in node and isinstance(node[filename], list):
+        if file_name in node and isinstance(node[file_name], str):
+            print(node[file_name])
+        elif file_name in node and isinstance(node[file_name], list):
             Utility.clear_screen()
             Utility.hide_cursor()
-            play_ascii_animation(node[filename], frames_per_second=12, loop_num_times=-2)
+            play_ascii_animation(node[file_name], frames_per_second=12, loop_num_times=-2)
             Utility.show_cursor()
+        elif file_name in node and isinstance(node[file_name], dict):
+            print(f"{file_name} is a directory.")
+        elif file_name in node and isinstance(node[file_name], None):
+            print(f"'{file_name}' is not a readable file.")
         else:
-            print(f"'{filename}' is not a readable file.")
+            print(f"File '{file_name}' not found.")
     
     def rm(self, args):
         if not args:
