@@ -46,10 +46,6 @@ def prompt_to_reload_terminal():
         else:
             print("Invalid input. Please enter 'yes|y' or 'no|n'.")
 
-def load_mission_messages(mission):
-    fobj = open("messages.json")
-    data = json.load(fobj)
-
 def template(user_terminal, gibson_terminal, microsoft_terminal, apple_terminal, hacker_messenger, gibson_messenger, microsoft_messenger, apple_messenger):
     # Hacker Message 1:
     hacker_messages = [
@@ -149,14 +145,14 @@ def mission1(msg_lst, user_terminal, hacker_messenger, gibson_terminal, gibson_m
     f"""==========================
     Remote Connections Log
     ==========================
-    addr::10.128.13.42
-    usr::admin
-    passwd::changeme
+    addr::18.23.123.11
+    usr::root
+    passwd::M$FT
     --------------------------
-    new conn
     addr::<>
     usr::<>
     passwd::<>
+    --------------------------
     """)
 
     completed = False
@@ -167,6 +163,59 @@ def mission1(msg_lst, user_terminal, hacker_messenger, gibson_terminal, gibson_m
         else:
             msgs = [
                 "I can see you haven't deleted the log file.",
+                "You haven't completed the mission.",
+                "Maybe I was wrong about you..."
+            ]
+            add_and_display_messages_from_hacker_messenger(msgs, animate = True)
+            prompt_to_reload_terminal()
+    user_terminal.active_user = None
+
+def mission2(msg_lst, user_terminal, hacker_messenger, microsoft_terminal, microsoft_messenger):
+    add_and_display_messages_from_hacker_messenger(msg_lst, animate = True)
+    fobj = open("main.py")
+    src = fobj.readlines()
+    fobj.close()
+    c = """
+    #include <stdio.h>
+
+    #define N 10
+
+    typedef struct {
+        int a;
+        double b;
+    } Data;
+
+    void process(Data *arr, int size) {
+        for (int i = 0; i < size; ++i) {
+            arr[i].b = arr[i].a * 1.5;
+            arr[i].a += i;
+        }
+    }
+
+    int main() {
+        Data data[N] = {{1, 2.0}, {3, 4.0}, {5, 6.0}, {7, 8.0}, {9, 10.0},
+                        {11, 12.0}, {13, 14.0}, {15, 16.0}, {17, 18.0}, {19, 20.0}};
+
+        process(data, N);
+
+        for (int i = 0; i < N; ++i) {
+            printf("Data[%d]: a=%d, b=%.2f\n", i, data[i].a, data[i].b);
+        }
+
+        return 0;
+    }
+    """
+    microsoft_terminal.add_file_to_filesystem(f"/home/root/Desktop", "main.py", "".join(src))
+    microsoft_terminal.add_file_to_filesystem(f"/home/root/Desktop", "main.c", c)
+
+    completed = False
+    while not completed:
+        access_terminal(user_terminal)
+        if "main.c" not in microsoft_terminal.filesystem["/"]["home"]["root"]["Desktop"] and "main.py" not in microsoft_terminal.filesystem["/"]["home"]["root"]["Desktop"] and microsoft_terminal.filesystem["/"]["etc"][".passwd"] == "hacked":
+            completed = True
+        else:
+            msgs = [
+                "I can see you haven't deleted the files from the Microsoft terminal or changed the password yet.",
                 "You haven't completed the mission.",
                 "Maybe I was wrong about you..."
             ]
@@ -199,6 +248,7 @@ def main():
         template(user_terminal, gibson_terminal, microsoft_terminal, apple_terminal, hacker_messenger, gibson_messenger, microsoft_messenger, apple_messenger)
     else:
         mission1(msgs["1"], user_terminal, hacker_messenger, gibson_terminal, gibson_messenger)
+        mission2(msgs["2"], user_terminal, hacker_messenger, microsoft_terminal, microsoft_messenger)
     
     
     
