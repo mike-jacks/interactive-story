@@ -385,15 +385,26 @@ class Terminal:
             print("No file name specified")
             return
         filename = args[0]
+        # Determine the full path to the file
+        if filename.startswith("/"):
+            # Absolute path
+            full_path = filename
+        else:
+            # Relative path
+            full_path = self.current_path + ("/" if not self.current_path.endswith("/") else "") + filename
+        
+        # Split the full path into parts and traverse the filesystem
         node = self.filesystem["/"]
-        parts = self.current_path.strip("/").split("/")
-        for part in parts:
+        parts = full_path.split("/")
+        for part in parts[:-1]:
             if part in node:
                 node = node[part]
             else:
                 print(f"Path '{'/'.join(parts)}' not found.")
                 return
-        if filename in node and isinstance(node[filename], str):
+        
+        # Check if the file exists and print its content
+        if filename in node and isinstance(node[filename], str) and node[filename]:
             print(rf"{node[filename]}")
         else:
             print(f"'{filename}' is not a readable file.")
