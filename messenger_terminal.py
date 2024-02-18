@@ -7,6 +7,8 @@ from time import sleep, time
 from abc import ABC, abstractmethod
 from text_color import TextColor
 from utility import Utility
+from sound import Sound
+from animation import Animation
 
 class MessageTerminal(ABC):
      
@@ -95,7 +97,12 @@ class MessageTerminal(ABC):
         start_time = time()
         while time() - start_time < timeout:
             if not self.is_messages_terminal_open():
-                print(f"You have discnnected from {self.window_name}'s messenger service...")
+                animated_text = f"You have discnnected from {self.window_name}'s messenger service..."
+                disconnected_from_messenger_service_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="\n", delay_between_chars=0.03)
+                Sound.play(Sound.DIGITAL_TYPING, loop=int((len(animated_text)*0.03*10)+5), pause=0.083)
+                disconnected_from_messenger_service_text_thread.stop(0.5)
+                sleep(1)
+                Utility.clear_screen()
                 Utility.show_cursor()
                 return True
             sleep(1)  # Poll every second
