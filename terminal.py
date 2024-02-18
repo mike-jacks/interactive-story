@@ -282,13 +282,14 @@ class Terminal:
         node = self.filesystem["/"]
         
         # If not in the root directory, navigate to the current directory
-        parts = self.current_path.strip("/").split("/")  # Remove leading '/' and split
-        for part in parts:
-            if part in node:  # Check each part of the path exists in the filesystem
-                node = node[part]
-            else:
-                print(f"Directory '{part}' not found.")
-                return
+        if self.current_path != "/":
+            parts = self.current_path.strip("/").split("/")  # Remove leading '/' and split
+            for part in parts:
+                if part and part in node:  # Check each part of the path exists in the filesystem
+                    node = node[part]
+                else:
+                    print(f"Directory '{part}' not found.")
+                    return
         
         # List the contents of the current directory
         if isinstance(node, dict):
@@ -567,7 +568,6 @@ class Terminal:
         delete_dir(parent_node, dirname)
     
     def ssh(self, args):
-        self.in_ssh_session = True
         if not args:
             print("No ip address specified")
             return
@@ -592,6 +592,7 @@ class Terminal:
                 target_terminal.current_path = f"/home/{username}"
                 password = input("Enter password: ")
                 if target_terminal.filesystem["/"]["etc"][".passwd"] == password:
+                    target_terminal.in_ssh_session = True
                     print(f"Logged into {target_terminal.terminal_name} terminal as {username}.")
                     sleep(1)
                     while not target_terminal.exit_requested:
@@ -601,22 +602,20 @@ class Terminal:
                             target_terminal.exit_requested = False
                             break
                     print(f"Quit out of {target_terminal.terminal_name} terminal successfully!")
-                    self.in_ssh_session = False
+                    target_terminal.in_ssh_session = False
                     return
                 else:
                     print("Invalid username or password.")
                     print("Disconnecting from terminal...")
-                    self.in_ssh_session = False
                     return
             else:
                 print(f"Invalid username.")
                 print("Disconnecting from terminal...")
-                self.in_ssh_session = False
                 return
     
     def download(self, args=[]):
         # Check if currently SSH'd into another terminal
-        if not self.ssh_active:  # Assuming 'ssh_active' is a boolean indicating SSH session
+        if not self.in_ssh_session:  # Assuming 'ssh_active' is a boolean indicating SSH session
             print("Download command can only be used when SSH'd into another terminal.")
             return
         
