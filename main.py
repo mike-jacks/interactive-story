@@ -63,8 +63,9 @@ def template(user_terminal, gibson_terminal, microsoft_terminal, apple_terminal,
     update_messenger_and_display(hacker_messenger, hacker_messages, animate=True)
     
     # Add gibson credential files to user filesystem
-    user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.txt",
-    f"""Gibson Terminal Credentials
+    user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.txt",
+    f"""    
+    Gibson Terminal Credentials
     ---------------------------
     IP Address: {gibson_terminal.terminal_ip_address}
     Username: {gibson_terminal.valid_users[0].username}
