@@ -132,7 +132,7 @@ def mission1(msg_lst, user_terminal, hacker_messenger, gibson_terminal, gibson_m
     update_messenger_and_display(hacker_messenger, msg_lst, animate = True)
 
     # Add gibson credential files to user filesystem
-    user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.txt",
+    user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.txt",
     f"""Gibson Terminal Credentials
     ---------------------------
     IP Address: {gibson_terminal.terminal_ip_address}
@@ -141,7 +141,7 @@ def mission1(msg_lst, user_terminal, hacker_messenger, gibson_terminal, gibson_m
     ---------------------------
     """)
 
-    gibson_terminal.add_file_to_filesystem(f"/var/log", "connections.log",
+    gibson_terminal._add_file_to_filesystem(f"/var/log", "connections.log",
     f"""==========================
     Remote Connections Log
     ==========================
@@ -210,8 +210,8 @@ def mission2(msg_lst, user_terminal, hacker_messenger, microsoft_terminal, micro
         return 0;
     }
     """
-    microsoft_terminal.add_file_to_filesystem(f"/home/root/Desktop", "main.py", "".join(src))
-    microsoft_terminal.add_file_to_filesystem(f"/home/root/Desktop", "main.c", c)
+    microsoft_terminal._add_file_to_filesystem(f"/home/root/Desktop", "main.py", "".join(src))
+    microsoft_terminal._add_file_to_filesystem(f"/home/root/Desktop", "main.c", c)
 
     completed = False
     while not completed:
@@ -246,9 +246,9 @@ def mission3(msg_lst, user_terminal, hacker_messenger, apple_terminal, apple_mes
     update_messenger_and_display(hacker_messenger, msg_lst, animate = True)
 
     frames = load_ascii_art_animation_from_json("animation_images_json/security.json")
-    apple_terminal.add_file_to_filesystem(f"/home/apple/Movies", "security.mp4", frames)
+    apple_terminal._add_file_to_filesystem(f"/home/apple/Movies", "security.mp4", frames)
 
-    user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "apple_credentials.txt",
+    user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "apple_credentials.txt",
     f"""Apple Terminal Credentials
     ---------------------------
     IP Address: {apple_terminal.terminal_ip_address}
