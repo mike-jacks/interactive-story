@@ -18,10 +18,9 @@
     "3": [
         "Well it seems my intel was right; you certainly know your stuff.\n",
         "I have one last task for you.\n",
-        "The security cameras in the building have picked up an altercation.\n",
-        "Log into the server that hosts the security system. The address should be 10.16.117.4.\n",
-        "The username is 'admin' and the password is 'big-brother'.\n",
-        "Delete ONLY the footage of the altercation. Anything else and they might get suspicious.\n",
+        "The security cameras in the building have picked up my informant.\n",
+        "Log into the server that hosts the security system.\n",
+        "Delete ONLY the footage of the mole. Anything else and they might get suspicious.\n",
         "I don't want any loose ends. Wrap this up cleanly and I'll have more work for you in the future.\n"
     ]
 }

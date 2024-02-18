@@ -238,9 +238,23 @@ def mission2(msg_lst, user_terminal, hacker_messenger, microsoft_terminal, micro
     user_terminal.active_user = None
 
 def mission3(msg_lst, user_terminal, hacker_messenger, apple_terminal, apple_messenger):
+    addendum = [
+        "I've sent you another credentials file, this time for the Apple Terminal.\n"
+    ]
+    msg_lst.extend(addendum)
     update_messenger_and_display(hacker_messenger, msg_lst, animate = True)
+
     frames = load_ascii_art_animation_from_json("animation_images_json/security.json")
-    apple_terminal.add_file_to_filesystem(f"/home/apple/Movies", "security.mp4", "".join(frames))
+    apple_terminal.add_file_to_filesystem(f"/home/apple/Movies", "security.mp4", frames)
+
+    user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "apple_credentials.txt",
+    f"""Apple Terminal Credentials
+    ---------------------------
+    IP Address: {apple_terminal.terminal_ip_address}
+    Username: {apple_terminal.valid_users[0].username}
+    Password: {apple_terminal.filesystem["/"]["etc"][".passwd"]}
+    ---------------------------
+    """)
 
     completed = False
     while not completed:
