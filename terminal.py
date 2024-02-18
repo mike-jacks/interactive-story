@@ -378,21 +378,38 @@ class Terminal:
         if not args:
             print("No file name specified")
             return
-        filename = args[0]
-        node = self.filesystem["/"]
-        parts = self.current_path.strip("/").split("/")
-        for part in parts:
-            if part in node:
-                node = node[part]
-            else:
-                print(f"Path '{'/'.join(parts)}' not found.")
-                return
-        if filename in node:
-            print(f"File '{filename}' already exists.")
-            return
+        file_path = args[0]
+
+        # Determine if the path is absolute or relative
+        if file_path.startswith("/"):
+            # Absolute path
+            full_path = file_path.strip("/")
         else:
-            node[filename] = None
-        self.save_filesystem() 
+            # Relative path: combine current path
+            full_path = os.path.join(self.current_path, file_path).strip("/")
+        
+        # Split the full path into parts and traverse the filesystem
+        dir_path, filename = os.path.split(full_path)
+        
+        # Get the node for the directory containing the file
+        dir_node = self._get_node_by_path(dir_path)
+        if dir_node is None:
+            print(f"Path '{dir_path}' not found.")
+            return
+        if not isinstance(dir_node, dict):
+            print(f"Path '{dir_path}' is not a directory.")
+            return
+        
+        # Check if the file exists and if its content is different
+        if filename in dir_node:
+            if isinstance(dir_node[filename], dict):
+                print(f"'{filename}' is an existing directory.")
+            else:
+                print(f"File '{filename}' already exists.")
+        else:
+            dir_node[filename] = None
+            print(f"File '{filename}' created successfully.")
+        self.save_filesystem()
     
     def cat(self, args):
         if not args:
@@ -876,7 +893,7 @@ class Terminal:
                 # If the path is not absolute, construct it relative to the current directory
                 start_path = os.path.join(self.current_path, args[1]).replace("//", "/")
         
-        def search_directory(directory, term, show_hidden, path):
+        def _search_directory(directory, term, show_hidden, path):
             found_items = []
             for item, content in directory.items():
                 # Construct the full path of the item
@@ -886,7 +903,7 @@ class Terminal:
                     if (show_hidden or not item.startswith(".")) and term in item:
                         found_items.append(item_path + '/')
                     # Recursively search in the directory
-                    found_items += search_directory(content, term, show_hidden, item_path)
+                    found_items += _search_directory(content, term, show_hidden, item_path)
                 else:   # File
                     if (show_hidden or not item.startswith(".")) and term in item:
                         found_items.append(item_path)
@@ -904,7 +921,7 @@ class Terminal:
                     return
         
         # Perform the search
-        found_paths = search_directory(node, search_term, show_hidden, start_path)
+        found_paths = _search_directory(node, search_term, show_hidden, start_path)
         if found_paths:
             for path in found_paths:
                 print(path)
