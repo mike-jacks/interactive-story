@@ -10,14 +10,13 @@ from messenger_terminal import MessageTerminal, HackerMessenger, CorporationMess
 from terminal import Terminal
 
 
-def add_and_display_messages_from_hacker_messenger(hacker_messages: list, animate: bool = False):
-    hacker_messenger = Terminal.messengers[0]
-    hacker_messenger.enqueue_messages(hacker_messages)
-    if hacker_messages not in Terminal.hacker_messages:
-        Terminal.hacker_messages.append(hacker_messages)
-    hacker_messenger.display_messages_and_wait(animate=True)
+def update_messenger_and_display(messenger, msg_lst, animate: bool = False):
+    messenger.enqueue_messages(msg_lst)
+    if msg_lst not in messenger.messages:
+        messenger.messages.append(msg_lst)
+    messenger.display_messages_and_wait(animate=animate)
     sleep(2)
-    hacker_messenger.wait_for_window_to_close()
+    messenger.wait_for_window_to_close()
 
 def access_terminal(user_terminal: Terminal):
     if not user_terminal.active_user:
@@ -61,7 +60,7 @@ def template(user_terminal, gibson_terminal, microsoft_terminal, apple_terminal,
         f"P.P.S. Just a reminder your username is:\n\"{user_terminal.valid_users[0].username}\"\nand your password is: \n\"{user_terminal.filesystem["/"]["etc"][".passwd"]}\"\nin case you forgot.\n",
     ]
     # Display Hacker Messages to messenger terminal
-    add_and_display_messages_from_hacker_messenger(hacker_messages, animate=True)
+    update_messenger_and_display(hacker_messenger, hacker_messages, animate=True)
     
     # Add gibson credential files to user filesystem
     user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.txt",
@@ -89,7 +88,7 @@ def template(user_terminal, gibson_terminal, microsoft_terminal, apple_terminal,
                 "Please reload your terminal and login to the Gibson terminal to complete the mission.",
                 "Please complete the mission and then log out of your terminal."
             ]
-            add_and_display_messages_from_hacker_messenger(hacker_messages, animate=True)
+            update_messenger_and_display(hacker_messenger, hacker_messages, animate=True)
             prompt_to_reload_terminal()
     user_terminal.active_user = None
         
@@ -103,7 +102,7 @@ def template(user_terminal, gibson_terminal, microsoft_terminal, apple_terminal,
         "I am watching you...",
     ]
     # Display Hacker Messages to messenger terminal
-    add_and_display_messages_from_hacker_messenger(hacker_messages, animate=True)
+    update_messenger_and_display(hacker_messenger, hacker_messages, animate=True)
     
     
     # Mission 2
@@ -120,7 +119,7 @@ def template(user_terminal, gibson_terminal, microsoft_terminal, apple_terminal,
                 "Please reload your terminal and login to the Gibson terminal to complete the mission.",
                 "Please complete the mission and then log out of your terminal."
             ]
-            add_and_display_messages_from_hacker_messenger(hacker_messages, animate=True)
+            update_messenger_and_display(hacker_messenger, hacker_messages, animate=True)
             prompt_to_reload_terminal()
 
 def mission1(msg_lst, user_terminal, hacker_messenger, gibson_terminal, gibson_messenger):
@@ -129,7 +128,7 @@ def mission1(msg_lst, user_terminal, hacker_messenger, gibson_terminal, gibson_m
         f"P.P.S. Just a reminder your username is:\n\"{user_terminal.valid_users[0].username}\"\nand your password is: \n\"{user_terminal.filesystem["/"]["etc"][".passwd"]}\"\nin case you forgot.\n"
     ]
     msg_lst.extend(addendum)
-    add_and_display_messages_from_hacker_messenger(msg_lst, animate = True)
+    update_messenger_and_display(hacker_messenger, msg_lst, animate = True)
 
     # Add gibson credential files to user filesystem
     user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.txt",
@@ -160,18 +159,23 @@ def mission1(msg_lst, user_terminal, hacker_messenger, gibson_terminal, gibson_m
         access_terminal(user_terminal)
         if "connections.log" not in gibson_terminal.filesystem["/"]["var"]["log"]:
             completed = True
+            msgs = [
+                "Listen here, punk. I don't know who you are, but you better watch yourself.\n",
+                "Tell me who you're working for and I might go easy on you.\n"
+            ]
+            update_messenger_and_display(gibson_messenger, msgs, True)
         else:
             msgs = [
-                "I can see you haven't deleted the log file.",
-                "You haven't completed the mission.",
-                "Maybe I was wrong about you..."
+                "I can see you haven't deleted the log file.\n",
+                "You haven't completed the mission.\n",
+                "Maybe I was wrong about you...\n"
             ]
-            add_and_display_messages_from_hacker_messenger(msgs, animate = True)
+            update_messenger_and_display(hacker_messenger, msgs, True)
             prompt_to_reload_terminal()
     user_terminal.active_user = None
 
 def mission2(msg_lst, user_terminal, hacker_messenger, microsoft_terminal, microsoft_messenger):
-    add_and_display_messages_from_hacker_messenger(msg_lst, animate = True)
+    update_messenger_and_display(hacker_messenger, msg_lst, animate = True)
     fobj = open("main.py")
     src = fobj.readlines()
     fobj.close()
@@ -213,13 +217,51 @@ def mission2(msg_lst, user_terminal, hacker_messenger, microsoft_terminal, micro
         access_terminal(user_terminal)
         if "main.c" not in microsoft_terminal.filesystem["/"]["home"]["root"]["Desktop"] and "main.py" not in microsoft_terminal.filesystem["/"]["home"]["root"]["Desktop"] and microsoft_terminal.filesystem["/"]["etc"][".passwd"] == "hacked":
             completed = True
+            msgs = [
+                "We have detected unauthorized access to our servers and the deletion of crucial code files. Our security protocols have been triggered, and we are actively investigating this breach. This is a serious violation of our terms of service and legal agreements.\n",
+                "We strongly advise you to cease any further activities immediately.\n",
+                "Microsoft takes these matters very seriously, and we will pursue legal action to the fullest extent of the law to address this breach.\n",
+                "If you believe there is a misunderstanding or if you have concerns, we urge you to contact our legal department at 555-867-5309 within the next 24 hours to discuss this matter further.\n",
+                "Please be aware that your actions are being tracked, and the appropriate authorities have been notified.\n",
+                "Regards,\n",
+                "Microsoft Security Team\n"
+            ]
+            update_messenger_and_display(microsoft_messenger, msgs, True)
         else:
             msgs = [
-                "I can see you haven't deleted the files from the Microsoft terminal or changed the password yet.",
-                "You haven't completed the mission.",
-                "Maybe I was wrong about you..."
+                "I can see you haven't deleted the files from the Microsoft terminal or changed the password yet.\n",
+                "You haven't completed the mission.\n",
+                "Maybe I was wrong about you...\n"
             ]
-            add_and_display_messages_from_hacker_messenger(msgs, animate = True)
+            update_messenger_and_display(hacker_messenger, msgs, animate = True)
+            prompt_to_reload_terminal()
+    user_terminal.active_user = None
+
+def mission3(msg_lst, user_terminal, hacker_messenger, apple_terminal, apple_messenger):
+    update_messenger_and_display(hacker_messenger, msg_lst, animate = True)
+    frames = load_ascii_art_animation_from_json("animation_images_json/security.json")
+    apple_terminal.add_file_to_filesystem(f"/home/apple/Movies", "security.mp4", "".join(frames))
+
+    completed = False
+    while not completed:
+        access_terminal(user_terminal)
+        if "security.mp4" not in apple_terminal.filesystem["/"]["home"]["apple"]["Movies"]:
+            completed = True
+            msgs = [
+                "Your little stunt has not gone unnoticed. We've detected your intrusion into our sacred digital realm. Did you really think you could waltz into Apple's servers undetected?\n",
+                "Your actions have consequences. We don't take kindly to those who dare to tamper with the foundation of our innovation. We're not just a company; we're a fortress, and you've just breached our walls.\n",
+                "Consider this your only warning: cease your activities immediately. The shadows you're playing in have eyes, and they are relentless. You may think you're invisible, but remember, anonymity is a fragile illusion.\n",
+                "This isn't a game. We have the means, the will, and the resources to track you down. You might want to think twice before crossing the line again.\n",
+                "This is your only chance to reconsider your choices.\n"
+            ]
+            update_messenger_and_display(apple_messenger, msgs, True)
+        else:
+            msgs = [
+               "I can see you haven't deleted the security tape from Apple's servers yet.\n",
+                "You haven't completed the mission.\n",
+                "Maybe I was wrong about you...\n" 
+            ]
+            update_messenger_and_display(hacker_messenger, msgs, True)
             prompt_to_reload_terminal()
     user_terminal.active_user = None
  
@@ -249,6 +291,7 @@ def main():
     else:
         mission1(msgs["1"], user_terminal, hacker_messenger, gibson_terminal, gibson_messenger)
         mission2(msgs["2"], user_terminal, hacker_messenger, microsoft_terminal, microsoft_messenger)
+        mission3(msgs["3"], user_terminal, hacker_messenger, apple_terminal, apple_messenger)
     
     
     
