@@ -278,8 +278,17 @@ class Terminal:
     def ls(self, args=[]):
         show_all = '-a' in args or '-al' in args # Check if '-a' or '-al' flag is present in command arguments
         
-        # Navigate to current path
-        node = self.navigate_to(self.current_path)
+        # Start from the root of the filesystem
+        node = self.filesystem["/"]
+        
+        # If not in the root directory, navigate to the current directory
+        parts = self.current_path.strip("/").split("/")  # Remove leading '/' and split
+        for part in parts:
+            if part in node:  # Check each part of the path exists in the filesystem
+                node = node[part]
+            else:
+                print(f"Directory '{part}' not found.")
+                return
         
         # List the contents of the current directory
         if isinstance(node, dict):
