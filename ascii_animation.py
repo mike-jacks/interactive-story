@@ -85,14 +85,14 @@ if __name__ == "__main__":
         filename = os.path.basename(image_folder_path)
         if len(sys.argv) == 2:
             for image_file in os.listdir(image_folder_path):
-                    if not image_file.endswith('.jpg'):
+                    if not image_file.endswith('.jpg') or not image_file.endswith('.png'):
                         continue
-                    if image_file.endswith('.jpg'):
+                    if image_file.endswith('.jpg') or image_file.endswith('.png'):
                         ascii_art_image = _create_ascii_art_from_image(os.path.join(image_folder_path, image_file))
                         while True:
                             try:
                                 image_name, image_extension = os.path.splitext(image_file)
-                                with open(f'image_json/{image_file.strip(".jpg")}.json', 'w') as f:
+                                with open(f'image_json/{image_name}.json', 'w') as f:
                                     json.dump(obj=[ascii_art_image], fp=f, indent=4)
                                 break
                             except FileNotFoundError:
@@ -114,9 +114,9 @@ if __name__ == "__main__":
                         continue
             elif sys.argv[2] == "false" or sys.argv[2] == "False" or sys.argv[2] == "FALSE" or sys.argv[2] == "f" or sys.argv[2] == "F" or sys.argv[2] == "" or sys.argv[2] == None:
                 for image_file in os.listdir(image_folder_path):
-                    if not image_file.endswith('.jpg'):
+                    if not image_file.endswith('.jpg') or not image_file.endswith('.png'):
                         continue
-                    if image_file.endswith('.jpg'):
+                    if image_file.endswith('.jpg') or image_file.endswith('.png'):
                         ascii_art_image = _create_ascii_art_from_image(os.path.join(image_folder_path, image_file))
                         while True:
                             try:
@@ -153,9 +153,9 @@ if __name__ == "__main__":
                     print("Invalid number of columns. Exiting...")
                     sys.exit(1)
                 for image_file in os.listdir(image_folder_path):
-                    if not image_file.endswith('.jpg'):
+                    if not image_file.endswith('.jpg') or not image_file.endswith('.png'):
                         continue
-                    if image_file.endswith('.jpg'):
+                    if image_file.endswith('.jpg') or image_file.endswith('.png'):
                         ascii_art_image = _create_ascii_art_from_image(os.path.join(image_folder_path, image_file), columns=columns)
                         while True:
                             try:
