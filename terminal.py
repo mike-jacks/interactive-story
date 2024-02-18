@@ -296,9 +296,9 @@ class Terminal:
             for item in node:
                 if not show_all and item.startswith("."):
                     continue # Skip hidden files and directories unles -a or -al flag is present
-                if item.endswith(".zip"):
+                elif item.endswith(".zip"):
                     print(f"{TextColor.YELLOW.value}{item}{TextColor.RESET.value}", end=" ")
-                if not isinstance(node[item], dict): # it's a file
+                elif not isinstance(node[item], dict): # it's a file
                     print(f"{TextColor.WHITE.value}{item}{TextColor.RESET.value}", end=" ") # File printed to console
                 else: # it's a directory
                     print(f"{TextColor.BLUE.value}{item}{TextColor.RESET.value}", end=" ") # Directory printed to console
@@ -424,7 +424,7 @@ class Terminal:
         # Check if the file exists and print its content
         if file_name in node and file_name.endswith(".zip"):
             print(f"'{file_name}' is a zipped directory. Use 'unzip' to extract its contents.")
-        if file_name in node and isinstance(node[file_name], str) and node[file_name]:
+        elif file_name in node and isinstance(node[file_name], str) and node[file_name]:
             print(rf"{node[file_name]}")
         elif file_name in node and isinstance(node[file_name], str) and not node[file_name]:
             print(f"{file_name} is not a readable file.")
@@ -506,10 +506,8 @@ class Terminal:
             if filename in parent_node and filename.endswith(".zip"):
                 del parent_node[filename]
                 print(f"File '{filename}' has been deleted.")
-                return
             elif isinstance(parent_node[filename], dict) and not recursive:
                 print(f"'{filename}' is a directory. Use '-rf' to remove directories.")
-                return
             else:
                 del parent_node[filename]
                 print(f"File '{filename}' has been deleted.")
@@ -604,12 +602,9 @@ class Terminal:
                 return
     
     def _get_node_by_path(self, path):
-        if not path.startswith('/'):
-            path = os.path.join(self.current_path, path)
-        path = path.strip('/')
 
-        node = self.filesystem
-        parts = path.split('/')
+        node = self.filesystem["/"]
+        parts = path.strip('/').split('/')
         for part in parts:
             if part in node:
                 node = node[part]
@@ -631,6 +626,8 @@ class Terminal:
         target_path = args[0]
         # Call the method to start the download process
         self._start_download(target_path)
+        self.save_filesystem()
+        Terminal.terminals[0].save_filesystem()
 
     
     def _start_download(self, target_path):
@@ -638,13 +635,13 @@ class Terminal:
         if not target_path.startswith("/"):
             # Relative path: combine with current_path
             full_path = os.path.join(self.current_path, target_path).strip("/")
-            node = self._get_node_by_path(full_path)  # Start navigation from current_path
         else:
             # Absolute path: start from root
             full_path = target_path.strip("/")
-            node = self.filesystem["/"]  # Start from the root of the filesystem
-
+        
+        node = self.filesystem["/"]  # Start from the root of the filesystem
         parts = full_path.split("/")
+        filename = parts.pop()
         # If full_path was absolute, parts[0] will be an empty string; skip in loop
         for part in parts:
             if part:  # Skip empty strings, which occur if path starts with '/'
@@ -655,11 +652,11 @@ class Terminal:
                     return
 
         # At this point, 'node' should be the item (file or directory) to download
-        item_name = parts[-1]
-        if isinstance(node, dict):  # It's a directory
-            self._zip_and_download_directory(item_name, node)
+        item_name = filename
+        if isinstance(node[item_name], dict):  # It's a directory
+            self._zip_and_download_directory(item_name, node[item_name])
         else:  # It's a file
-            self._download_file(item_name, node)
+            self._download_file(item_name, node[item_name])
 
 
     
@@ -689,24 +686,50 @@ class Terminal:
     
     def unzip(self, args=[]):
         if not args:
-            print("Usage: unzip <directory_name.zip>")
+            print("Usage: unzip <file_name.zip>")
             return
-        
-        zip_name = args[0]
+
+        zip_path = args[0]
+        # Handle both absolute and relative paths
+        if not zip_path.startswith("/"):
+            # It's a relative path; build the full path
+            full_zip_path = os.path.join(self.current_path, zip_path)
+        else:
+            # It's an absolute path
+            full_zip_path = zip_path
+
+        # Normalize path (remove redundant slashes)
+        full_zip_path = os.path.normpath(full_zip_path)
+        # Split the path to get directory path and zip file name
+        dir_path, zip_name = os.path.split(full_zip_path)
+
         if not zip_name.endswith('.zip'):
             print("Error: The file is not a .zip file.")
+            return
+
+        # Get the node for the directory containing the zip file
+        dir_node = self._get_node_by_path(dir_path)
+        if dir_node is None or zip_name not in dir_node:
+            print(f"Error: '{zip_path}' not found.")
             return
 
         # Create new directory name by removing '.zip' extension
         new_dir_name = zip_name[:-4]
         counter = 1
-        while new_dir_name in self.filesystem["/"]["home"][self.username]["Downloads"]:
+        while new_dir_name in dir_node:
             new_dir_name = f"{zip_name[:-4]}_{counter}"
             counter += 1
 
-        # 'Unzipping': Copy the directory content from .zip to a new folder
-        self.filesystem["/"]["home"][self.valid_users[0].username]["Downloads"][new_dir_name] = self.filesystem["/"]["home"][self.valid_users[0].username]["Downloads"][zip_name]
-        print(f"'{zip_name}' has been unzipped to '{new_dir_name}'.")
+        # 'Unzipping': Check if the zip file contains directory structure
+        if isinstance(dir_node[zip_name], dict):
+            # Create a new directory next to the zip file with the same contents
+            dir_node[new_dir_name] = dir_node[zip_name].copy()  # Make a copy of the directory content
+            print(f"'{zip_name}' has been unzipped to '{new_dir_name}' in directory '{dir_path}'.")
+        else:
+            dir_node[new_dir_name] = {}  # Make an empty directory
+            print(f"'{zip_name}' has been unzipped to '{new_dir_name}' in directory '{dir_path}'.")
+        self.save_filesystem()
+
 
     
     def set_password(self, args):
