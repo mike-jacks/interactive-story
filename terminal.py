@@ -24,7 +24,7 @@ class Terminal:
     messengers: list[MessageTerminal] = [HackerMessenger("Hacker")]
     hacker_messages: list[list[str]] = [[]]
 
-    def __init__(self, terminal_name: str, terminal_ip_address: str, terminal_username = None, terminal_password = None) -> None:
+    def __init__(self, terminal_name: str, terminal_ip_address: str, terminal_username = None, terminal_password = None, is_user_terminal = False) -> None:
         self.terminal_name = terminal_name
         self.terminal_ip_address = terminal_ip_address
         self.filesystem_filename = f"./filesystems/{terminal_name}_filesystem.json"
@@ -33,6 +33,8 @@ class Terminal:
         self.active_user = None
         self.messenger = CorporationMessenger(terminal_name)
         self.messenger_messages: list[list[str]] = [[]]
+        self.in_ssh_session = False
+        self.is_user_terminal = is_user_terminal
         Terminal.messengers.append(self.messenger)
         
         if self.filesystem_exists:
@@ -73,6 +75,7 @@ class Terminal:
             "cd": self.cd,
             "mkdir": self.mkdir,
             "touch": self.touch,
+            "unzip": self.unzip,
             "echo": self.echo,
             "find": self.find,
             "cat": self.cat,
@@ -81,6 +84,7 @@ class Terminal:
             "rmdir": self.rmdir,
             "ifconfig": self.ifconfig,
             "ssh": self.ssh,
+            "download": self.download,
             "setpasswd": self.set_password,
             "messenger": self.messenger_window,
             "clear": self.clear_screen,
@@ -274,24 +278,16 @@ class Terminal:
     def ls(self, args=[]):
         show_all = '-a' in args or '-al' in args # Check if '-a' or '-al' flag is present in command arguments
         
-        # Start from the root of the filesystem
-        node = self.filesystem["/"]
-        
-        # If not in the root directory, navigate to the current directory
-        if self.current_path != "/":
-            parts = self.current_path.strip("/").split("/") # Remove leading '/' and split
-            for part in parts:
-                if part in node:
-                    node = node[part]
-                else:
-                    print(f"Directory '{part}' not found.")
-                    return
+        # Navigate to current path
+        node = self.navigate_to(self.current_path)
         
         # List the contents of the current directory
         if isinstance(node, dict):
             for item in node:
                 if not show_all and item.startswith("."):
                     continue # Skip hidden files and directories unles -a or -al flag is present
+                if item.endswith(".zip"):
+                    print(f"{TextColor.YELLOW.value}{item}{TextColor.RESET.value}", end=" ")
                 if not isinstance(node[item], dict): # it's a file
                     print(f"{TextColor.WHITE.value}{item}{TextColor.RESET.value}", end=" ") # File printed to console
                 else: # it's a directory
@@ -416,6 +412,8 @@ class Terminal:
                 return
         
         # Check if the file exists and print its content
+        if file_name in node and file_name.endswith(".zip"):
+            print(f"'{file_name}' is a zipped directory. Use 'unzip' to extract its contents.")
         if file_name in node and isinstance(node[file_name], str) and node[file_name]:
             print(rf"{node[file_name]}")
         elif file_name in node and isinstance(node[file_name], str) and not node[file_name]:
@@ -453,7 +451,9 @@ class Terminal:
             else:
                 print(f"Path '{'/'.join(parts)}' not found.")
                 return
-        if file_name in node and isinstance(node[file_name], str):
+        if file_name in node and file_name.endswith(".zip"):
+            print(f"'{file_name}' is a zipped directory. Use 'unzip' to extract its contents.")
+        elif file_name in node and isinstance(node[file_name], str):
             print(node[file_name])
         elif file_name in node and isinstance(node[file_name], list):
             Utility.clear_screen()
@@ -493,7 +493,11 @@ class Terminal:
         
         # Delete the target file or directory
         if target_name in node:
-            if isinstance(node[target_name], dict) and not recursive:
+            if target_name in node and target_name.endswith(".zip"):
+                del node[target_name]
+                print(f"File '{target_name}' has been deleted.")
+                return
+            elif isinstance(node[target_name], dict) and not recursive:
                 print(f"'{target_name}' is a directory. Use '-rf' to remove directories.")
                 return
             else:
@@ -554,6 +558,7 @@ class Terminal:
         delete_dir(parent_node, dirname)
     
     def ssh(self, args):
+        self.in_ssh_session = True
         if not args:
             print("No ip address specified")
             return
@@ -587,15 +592,105 @@ class Terminal:
                             target_terminal.exit_requested = False
                             break
                     print(f"Quit out of {target_terminal.terminal_name} terminal successfully!")
+                    self.in_ssh_session = False
                     return
                 else:
                     print("Invalid username or password.")
                     print("Disconnecting from terminal...")
+                    self.in_ssh_session = False
                     return
             else:
                 print(f"Invalid username.")
                 print("Disconnecting from terminal...")
+                self.in_ssh_session = False
                 return
+    
+    def download(self, args=[]):
+        # Check if currently SSH'd into another terminal
+        if not self.ssh_active:  # Assuming 'ssh_active' is a boolean indicating SSH session
+            print("Download command can only be used when SSH'd into another terminal.")
+            return
+        
+        if not args:
+            print("Usage: download <filename or directory>")
+            return
+        
+        target_path = args[0]
+        # Call the method to start the download process
+        self._start_download(target_path)
+
+    
+    def _start_download(self, target_path):
+        # Normalize path and find file or directory in the remote filesystem
+        full_path = os.path.join(self.current_path, target_path).strip("/") if not target_path.startswith("/") else target_path.strip("/")
+        node = self.filesystem  # Assuming 'filesystem' is the structure holding all files and directories
+        parts = full_path.split("/")
+        
+        # Navigate through the filesystem to find the target
+        for part in parts[:-1]:
+            if part in node:
+                node = node[part]
+            else:
+                print(f"Path '{'/'.join(parts)}' not found.")
+                return
+        
+        item_name = parts[-1]
+        if item_name in node:
+            # Determine if it's a file or directory
+            item = node[item_name]
+            if isinstance(item, dict):  # It's a directory
+                self._zip_and_download_directory(item_name, item)
+            else:  # It's a file
+                self._download_file(item_name, item)
+        else:
+            print(f"Item '{item_name}' not found.")
+
+    
+    def _zip_and_download_directory(self, directory_name, directory):
+        user_terminal = next((t for t in Terminal.terminals if t.is_user_terminal), None)
+        user_terminal_username = user_terminal.valid_users[0].username
+        if user_terminal:
+            # Handle potential naming conflicts
+            base_name = directory_name
+            zip_name = f"{base_name}.zip"
+            counter = 1
+            while zip_name in user_terminal.filesystem["/"]["home"][user_terminal_username]["Downloads"]:
+                zip_name = f"{base_name}_{counter}.zip"
+                counter += 1
+            
+            # Simulate zipping by copying the directory under a new '.zip' name
+            user_terminal.filesystem["/"]["home"][user_terminal_username]["Downloads"][zip_name] = directory
+            print(f"Directory '{directory_name}' has been downloaded and zipped as '{zip_name}'.")
+            
+    
+    def _download_file(self, file_name, content):
+        user_terminal = next((t for t in Terminal.terminals if t.is_user_terminal), None)
+        user_terminal_username = user_terminal.valid_users[0].username
+        if user_terminal:
+            user_terminal.filesystem["/"]["home"][user_terminal_username]["Downloads"][file_name] = content
+            print(f"File '{file_name}' has been downloaded.")
+    
+    def unzip(self, args=[]):
+        if not args:
+            print("Usage: unzip <directory_name.zip>")
+            return
+        
+        zip_name = args[0]
+        if not zip_name.endswith('.zip'):
+            print("Error: The file is not a .zip file.")
+            return
+
+        # Create new directory name by removing '.zip' extension
+        new_dir_name = zip_name[:-4]
+        counter = 1
+        while new_dir_name in self.filesystem["/"]["home"][self.username]["Downloads"]:
+            new_dir_name = f"{zip_name[:-4]}_{counter}"
+            counter += 1
+
+        # 'Unzipping': Copy the directory content from .zip to a new folder
+        self.filesystem["/"]["home"][self.valid_users[0].username]["Downloads"][new_dir_name] = self.filesystem["/"]["home"][self.valid_users[0].username]["Downloads"][zip_name]
+        print(f"'{zip_name}' has been unzipped to '{new_dir_name}'.")
+
     
     def set_password(self, args):
         if not args:
@@ -618,6 +713,7 @@ class Terminal:
         print("cd - change directory")
         print("mkdir - make directory")
         print("touch - create file")
+        print("unzip - unzip file")
         print("echo - write to file")
         print("cat - print file contents")
         print("open - open file")
@@ -625,6 +721,7 @@ class Terminal:
         print("rmdir - remove directory")
         print("ifconfig - get ip address")
         print("ssh - connect to another terminal")
+        print("download - download file or directory from ssh")
         print("setpasswd - set password")
         print("messenger - open hacker messenger window")
         print("clear - clear the terminal screen")
@@ -808,59 +905,8 @@ class Terminal:
         self.exit_requested = True
 
 
-
-# Utility.clear_screen()
-# # Create a few terminals
-# user_terminal = Terminal(terminal_name="localhost", terminal_ip_address="170.130.234.11")
-# gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.112.29.87", terminal_username="admin", terminal_password="god")
-# gibson_terminal.add_file_to_filesystem("/home/admin/Documents/Important", "README.txt", "Welcome to the Gibson terminal.")
-
 def main():
     pass
-#     hacker_messenger = Terminal.messengers[0]
-#     gibson_messenger = gibson_terminal.messenger
-
-#     # Enqueue messages to be displayed in the hacker terminal
-#     hacker_messages = [
-#         f"Hi {user_terminal.valid_users[0].username}!",
-#         "I'm a hacker and I know you are a hacker too!",
-#         "I need your help to modify files on the Gibson terminal.",
-#         "Something is wrong, and I only have read acces.",
-#         "I have sent document with the ip address and login credentials for you to ssh into to your Downloads folder.",
-#         "Please change the password of the admin user to 'hacked'.",
-#         "I will be in touch...",
-#     ]
-    
-#     hacker_messenger.enqueue_messages(hacker_messages)
-#     hacker_messenger.display_messages_and_wait()
-#     sleep(2)
-
-#     gibson_messenger.enqueue_messages(["You mother fucker!", "How dare you hack in and change my password!", "You will pay for this you piss ant!"])
-#     gibson_messenger.display_messages_and_wait()
-#     sleep(2)
-#     hacker_messenger.wait_for_window_to_close()
-#     user_terminal.add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Documents",
-#                                          "gibson_info.txt",
-# f"""    ip_address: {gibson_terminal.terminal_ip_address}
-#     Username: {gibson_terminal.valid_users[0].username}
-#     Password: {gibson_terminal.valid_users[0].password}
-#     """)
-#     gibson_messenger.wait_for_window_to_close()
-    
-#     if not user_terminal.active_user:
-#         print("Welcome to the terminal.")
-#         user_terminal.prompt_for_login()
-    
-#     # Main command loop
-#     while not user_terminal.exit_requested:
-#         if user_terminal.active_user:
-#             action = input(f"{user_terminal.active_user.username}@{user_terminal.terminal_name}:{user_terminal.current_path}$ ")
-#             user_terminal.execute(action)
-#         else:
-#             user_terminal.prompt_for_login()
-#         if user_terminal.exit_requested:
-#             break
-#     print("Quit out of terminal successfully!")
 
 if __name__ == "__main__":
     main()
