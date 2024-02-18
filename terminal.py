@@ -489,32 +489,32 @@ class Terminal:
         if not args:
             print("No file name specified after flags.")
             return
-        target_name = args[0]
+        file_path = args[0]
         
-        # Navigate to the target's parent directory
-        node = self.filesystem["/"]
-        parts = self.current_path.strip("/").split("/")
-        for part in parts:
-            if part in node:
-                node = node[part]
-            else:
-                print(f"Path '{'/'.join(parts)}' not found.")
-                return
-        
+        full_path = os.path.join(self.current_path, file_path) if not file_path.startswith('/') else file_path
+        parts = full_path.strip('/').split('/')
+        filename = parts.pop()
+        parent_path = '/'.join(parts)
+        parent_node = self._get_node_by_path(parent_path)
+
+        if parent_node is None:
+            print(f"Path '{parent_path}' not found.")
+            return 
+            
         # Delete the target file or directory
-        if target_name in node:
-            if target_name in node and target_name.endswith(".zip"):
-                del node[target_name]
-                print(f"File '{target_name}' has been deleted.")
+        if filename in parent_node:
+            if filename in parent_node and filename.endswith(".zip"):
+                del parent_node[filename]
+                print(f"File '{filename}' has been deleted.")
                 return
-            elif isinstance(node[target_name], dict) and not recursive:
-                print(f"'{target_name}' is a directory. Use '-rf' to remove directories.")
+            elif isinstance(parent_node[filename], dict) and not recursive:
+                print(f"'{filename}' is a directory. Use '-rf' to remove directories.")
                 return
             else:
-                del node[target_name]
-                print(f"File '{target_name}' has been deleted.")
+                del parent_node[filename]
+                print(f"File '{filename}' has been deleted.")
         else:
-            print(f"File '{target_name}' not found.")
+            print(f"File '{filename}' not found.")
         self.save_filesystem()
             
             
@@ -531,41 +531,31 @@ class Terminal:
         if not args:
             print("No directory name specified after flags.")
             return
-        dirname = args[0]
+        dir_path = args[0]
 
-        # Start from the root or current_path and find the target directory's parent
-        node = self.filesystem["/"]
-        parts = self.current_path.strip("/").split("/")  # Adjust to navigate from root
-        target_path = parts + [dirname] if self.current_path != "/" else [dirname]
-        parent_path = target_path[:-1]
-        parent_node = node
-        self.save_filesystem()
+        full_path = os.path.join(self.current_path, dir_path) if not dir_path.startswith('/') else dir_path
+        parts = full_path.strip('/').split('/')
+        dirname = parts.pop()
+        parent_path = '/'.join(parts)
+        parent_node = self._get_node_by_path(parent_path)
 
-        # Navigate to the parent directory of the target
-        for part in parent_path:
-            if part in parent_node and isinstance(parent_node[part], dict):
-                parent_node = parent_node[part]
-            else:
-                print(f"Directory '{'/'.join(parent_path)}' not found.")
-                return
+        if parent_node is None:
+            print(f"Path '{parent_path}' not found.")
+            return
 
-        # Now, parent_node is the parent directory of the target
-        # delete_dir is adjusted to operate directly on the parent node
-        def delete_dir(parent_node, dirname):
-            if dirname in parent_node:
-                if isinstance(parent_node[dirname], dict):  # It's a directory
-                    if recursive or not parent_node[dirname]:  # Recursive or empty
-                        del parent_node[dirname]  # Delete the directory
-                        print(f"Directory '{dirname}' has been deleted.")
-                    else:
-                        print(f"Directory '{dirname}' is not empty.")
+        
+        if dirname in parent_node:
+            if isinstance(parent_node[dirname], dict):  # It's a directory
+                if recursive or not parent_node[dirname]:  # Recursive or empty
+                    del parent_node[dirname]  # Delete the directory
+                    print(f"Directory '{dirname}' has been deleted.")
                 else:
-                    print(f"'{dirname}' is a file, not a directory.")
+                    print(f"Directory '{dirname}' is not empty. Use '-rf' to remove non-empty directories.")
             else:
-                print(f"Directory '{dirname}' not found.")
-
-        # Call delete_dir with the parent node and the directory name to remove
-        delete_dir(parent_node, dirname)
+                print(f"'{dirname}' is a file, not a directory. Use 'rm' to remove files.")
+        else:
+            print(f"Directory '{dirname}' not found.")
+        self.save_filesystem()
     
     def ssh(self, args):
         if not args:
@@ -613,6 +603,21 @@ class Terminal:
                 print("Disconnecting from terminal...")
                 return
     
+    def _get_node_by_path(self, path):
+        if not path.startswith('/'):
+            path = os.path.join(self.current_path, path)
+        path = path.strip('/')
+
+        node = self.filesystem
+        parts = path.split('/')
+        for part in parts:
+            if part in node:
+                node = node[part]
+            else:
+                return None  # Path not found
+        return node
+
+        
     def download(self, args=[]):
         # Check if currently SSH'd into another terminal
         if not self.in_ssh_session:  # Assuming 'ssh_active' is a boolean indicating SSH session
@@ -630,28 +635,32 @@ class Terminal:
     
     def _start_download(self, target_path):
         # Normalize path and find file or directory in the remote filesystem
-        full_path = os.path.join(self.current_path, target_path).strip("/") if not target_path.startswith("/") else target_path.strip("/")
-        node = self.filesystem  # Assuming 'filesystem' is the structure holding all files and directories
-        parts = full_path.split("/")
-        
-        # Navigate through the filesystem to find the target
-        for part in parts[:-1]:
-            if part in node:
-                node = node[part]
-            else:
-                print(f"Path '{'/'.join(parts)}' not found.")
-                return
-        
-        item_name = parts[-1]
-        if item_name in node:
-            # Determine if it's a file or directory
-            item = node[item_name]
-            if isinstance(item, dict):  # It's a directory
-                self._zip_and_download_directory(item_name, item)
-            else:  # It's a file
-                self._download_file(item_name, item)
+        if not target_path.startswith("/"):
+            # Relative path: combine with current_path
+            full_path = os.path.join(self.current_path, target_path).strip("/")
+            node = self._get_node_by_path(full_path)  # Start navigation from current_path
         else:
-            print(f"Item '{item_name}' not found.")
+            # Absolute path: start from root
+            full_path = target_path.strip("/")
+            node = self.filesystem["/"]  # Start from the root of the filesystem
+
+        parts = full_path.split("/")
+        # If full_path was absolute, parts[0] will be an empty string; skip in loop
+        for part in parts:
+            if part:  # Skip empty strings, which occur if path starts with '/'
+                if part in node:
+                    node = node[part]
+                else:
+                    print(f"Path '{'/'.join(parts[:parts.index(part)+1])}' not found.")
+                    return
+
+        # At this point, 'node' should be the item (file or directory) to download
+        item_name = parts[-1]
+        if isinstance(node, dict):  # It's a directory
+            self._zip_and_download_directory(item_name, node)
+        else:  # It's a file
+            self._download_file(item_name, node)
+
 
     
     def _zip_and_download_directory(self, directory_name, directory):
