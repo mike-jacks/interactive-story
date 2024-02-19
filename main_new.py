@@ -77,7 +77,7 @@ def main():
     hackers_animation = load_ascii_art_animation_from_json("./animation_images_json/hackers_animation.json")
     hackers_animation = clean_up_ascii_art_animation(hackers_animation)
     Sound.play(Sound.HACKERS_ANIMATION, loop=1, pause=0.0)
-    hackers_animation_thread = play_ascii_animation(hackers_animation, frames_per_second=28, loop_num_times=0, continue_thread_after_stop_for=0.01)
+    hackers_animation_thread = play_ascii_animation(hackers_animation, frames_per_second=30, loop_num_times=0, continue_thread_after_stop_for=0.01)
     hackers_animation_thread.stop()
     Utility.clear_screen()
     
@@ -85,6 +85,7 @@ def main():
     # Add opening animated logo and display on screen
     Utility.hide_cursor()
     hack_the_planet_animation = load_ascii_art_animation_from_json("./animation_images_json/hack_the_planet_animation.json")
+    hack_the_planet_animation = clean_up_ascii_art_animation(hack_the_planet_animation)
     hack_the_planet_animation_thread = play_ascii_animation(hack_the_planet_animation, frames_per_second=24, loop_num_times=0, continue_thread_after_stop_for=3.8)
     Sound.play(Sound.DIGITAL_TYPING, loop=15, pause=0.083)
     hack_the_planet_animation_thread.stop(0.5)
