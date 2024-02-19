@@ -3,13 +3,16 @@ from time import sleep
 import re, sys
 
 class Mission:
-    def __init__(self, mission_id, enemy_terminal):
-        self.name = mission_id
+    def __init__(self, mission_id, user_terminal: Terminal, enemy_terminal: Terminal, hacker_messages, enemy_messages):
+        self.mission_id = mission_id
+        self.user_terminal = user_terminal
         self.enemy_terminal = enemy_terminal
-        self.user_terminal = Terminal.terminals[0]
         self.enemy_messenger = self.enemy_terminal.messenger
         self.hacker_messenger = Terminal.messengers[0]
-        self.hacker_messeges = Terminal.hacker_messages
+        self.hacker_messeges = hacker_messages
+        self.enemy_messages = enemy_messages
+        self.is_complete = self.user_terminal.is_mission_completed(self.mission_id)
+        self.user_terminal.update_mission_state(self.mission_id, self.is_complete)
         
     def load_hacker_messages(self, hacker_messages: list):
         pass
@@ -17,14 +20,16 @@ class Mission:
     def load_enemy_messages(self, enemy_messages: list):
         pass
     
-    def completed(self):
-        self.user_terminal.update_mission_state(self.name, True)
+    def is_a_success(self):
+        self.is_complete = True
+        self.user_terminal.update_mission_state(self.mission_id, True)
     
-    def not_completed(self):
-        self.user_terminal.update_mission_state(self.name, False)
+    def is_a_failure(self):
+        self.is_complete = False
+        self.user_terminal.update_mission_state(self.mission_id, False)
     
-    def is_complete(self):
-        return self.user_terminal.mission_state[self.name]
+    def get_is_complete(self):
+        return self.is_complete
     
     def update_messenger_and_display(self, messenger, msg_lst, animate: bool = False):
         messenger.enqueue_messages(msg_lst)

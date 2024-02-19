@@ -96,6 +96,9 @@ class Terminal:
     def messenger_window(self, args=[]):
         # display hacker messenger window with the last item in the messages list
         if self.hacker_messages:
+            login_text_thread = Animation.animated_text(static_text="Launching messenger service", animated_text="...", end_text="\n", delay_between_chars=0.3, continue_thread_after_stop_for=2)
+            login_text_thread.stop(0.5)
+            Utility.clear_screen()
             hacker_terminal = Terminal.messengers[0]
             hacker_terminal.enqueue_messages(self.hacker_messages[-1])
             hacker_terminal.display_messages_and_wait()
@@ -590,6 +593,7 @@ class Terminal:
         self.save_filesystem()
     
     def ssh(self, args):
+        Utility.hide_cursor()
         if not args:
             print("No ip address specified")
             return
@@ -602,6 +606,7 @@ class Terminal:
             connecting_to_ip_text_thread = Animation.animated_text(static_text=f"Connecting to {ip_address}", animated_text=f"...", end_text="Connected\n", delay_between_chars=0.2, continue_thread_after_stop_for=0.1)
             Sound.play(Sound.CONNECTING_TO_COMPUTER_OVER_MODEM_SHORT, pause = 9)
             connecting_to_ip_text_thread.stop(1)
+            Utility.show_cursor()
             username = input("Enter username: ")
             
             target_terminal.ensure_password_file_exists()
@@ -709,6 +714,7 @@ class Terminal:
             # Simulate zipping by copying the directory under a new '.zip' name
             user_terminal.filesystem["/"]["home"][user_terminal_username]["Downloads"][zip_name] = directory
             print(f"Directory '{directory_name}' has been downloaded and zipped as '{zip_name}'.")
+            user_terminal.save_filesystem()
             
     
     def _download_file(self, file_name, content):
@@ -717,6 +723,7 @@ class Terminal:
         if user_terminal:
             user_terminal.filesystem["/"]["home"][user_terminal_username]["Downloads"][file_name] = content
             print(f"File '{file_name}' has been downloaded.")
+            user_terminal.save_filesystem()
     
     def unzip(self, args=[]):
         if not args:
@@ -943,8 +950,10 @@ class Terminal:
             for path in found_paths:
                 print(path)
             print()
+            return True
         else:
             print(f"No matches found for {search_term}\n")
+            return False
                         
                         
     def _append_to_file(self, path, filename, content):

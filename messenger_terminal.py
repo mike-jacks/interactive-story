@@ -36,8 +36,11 @@ class MessageTerminal(ABC):
         # Generate a script to display all messages and wait for an input.
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.sh') as script_file:
             script_file.write("#!/bin/zsh\n")
+            script_file.write("printf '\\e[8;24;111t'\n")
             script_file.write("clear\n")
             script_file.write(f'echo -n -e "\\033]0;{self.window_name}\\007"\n')
+            script_file.write("tput civis\n")
+            script_file.write("sleep 1\n")
             if animate:
                 for message in self.messages[-1]:
                     script_file.write(f'echo -n "{self.terminal_text_color.value}{self.window_name}: ";')
@@ -57,6 +60,8 @@ class MessageTerminal(ABC):
         # Make the script file executable
         os.chmod(script_file.name, 0o755)
         subprocess.run(['open', '-a', 'Terminal', script_file.name])
+        sleep(2.3)
+        Sound.play(Sound.MAC_OS_NOTIFICAITON_1_SOUND)
     
     def process_messages(self):
         # Platform-specific command to open a new terminal window
@@ -97,7 +102,7 @@ class MessageTerminal(ABC):
         start_time = time()
         while time() - start_time < timeout:
             if not self.is_messages_terminal_open():
-                animated_text = f"You have discnnected from {self.window_name}'s messenger service..."
+                animated_text = f"You have disconnected from {self.window_name}'s messenger service..."
                 disconnected_from_messenger_service_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="\n", delay_between_chars=0.03)
                 Sound.play(Sound.DIGITAL_TYPING, loop=int((len(animated_text)*0.03*10)+5), pause=0.083)
                 disconnected_from_messenger_service_text_thread.stop(0.5)
