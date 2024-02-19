@@ -886,26 +886,60 @@ class Terminal:
     
     def echo(self, args):
         if not args or ">" not in args and ">>" not in args:
-            print("Usage: echo \"text\" > filename.txt or echo \"text\" >> filename.txt")
+            print("Usage: echo \"text\" > filename or echo \"text\" >> filename")
             return
-        
+
         # Join args back to a string and split by redirection operator
         args_str = " ".join(args)
         if ">>" in args_str:
-            text, filename = args_str.split(" >> ", 1)
+            text, file_path = args_str.split(" >> ", 1)
             mode = "append"
         else:
-            text, filename = args_str.split(" > ", 1)
+            text, file_path = args_str.split(" > ", 1)
             mode = "overwrite"
 
         # Remove leading and trailing quotes from text
         text = text.strip("\"")
 
-        # Handle file writing or appending
+        # Normalize the file path
+        if not file_path.startswith("/"):
+            # Relative path: combine with current_path
+            full_path = os.path.join(self.current_path, file_path).strip("/")
+        else:
+            # Absolute path
+            full_path = file_path.strip("/")
+
+        # Split the path to get the directory and file name
+        parts = full_path.split("/")
+        filename = parts.pop()
+        dir_path = "/".join(parts)
+
+        # Navigate to the directory
+        node = self._get_node_by_path(dir_path if dir_path else "/")
+        if node is None:
+            print(f"Path '{dir_path}' not found.")
+            return
+        if not isinstance(node, dict):
+            print(f"Path '{dir_path}' is not a directory.")
+            return
+
+        # Check if the target is a directory
+        if filename in node and isinstance(node[filename], dict):
+            print(f"Cannot write to '{filename}': Is a directory.")
+            return
+
+        # Write or append to the file
         if mode == "overwrite":
-            self._add_file_to_filesystem(self.current_path, filename, text)
+            node[filename] = text  # Overwrite or create the file
+            print(f"Written to '{filename}'.")
         elif mode == "append":
-            self._append_to_file(self.current_path, filename, text)
+            if filename in node:
+                node[filename] += "\n" + text  # Append to the existing file
+            else:
+                node[filename] = text  # Create a new file if it does not exist
+            print(f"Appended to '{filename}'.")
+
+        self.save_filesystem()
     
     def find(self, args=[]):
         # Check if there are no arguments or the first argument is only '-a' or '-al' without a filename
