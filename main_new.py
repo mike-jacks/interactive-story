@@ -4,7 +4,7 @@ from animation import Animation
 from sound import Sound
 from time import sleep
 from terminal import Terminal
-import re, sys
+import re, sys, os
 from mission import Mission
 import json
 
@@ -77,28 +77,45 @@ def main():
     # Add opening animated logo and display on screen
     Utility.hide_cursor()
     hack_the_planet_animation = load_ascii_art_animation_from_json("./animation_images_json/hack_the_planet_animation.json")
-    play_ascii_animation(hack_the_planet_animation, frames_per_second=24)
+    hack_the_planet_animation_thread = play_ascii_animation(hack_the_planet_animation, frames_per_second=24, loop_num_times=0, continue_thread_after_stop_for=3.8)
+    Sound.play(Sound.DIGITAL_TYPING, loop=15, pause=0.083)
+    hack_the_planet_animation_thread.stop(0.5)
     Utility.clear_screen()
     
     # Opening text animation with sound
-    text_to_animate = "Welcome to Hack The Planet!"
-    animate_text_with_sound(text_to_animate, loop_offset=2)
-    animate_text_with_sound("In just a moment you will be asked to create a login for your terminal.", loop_offset=5)
-    animate_text_with_sound("Once logged into your terminal, you can type 'help' to get a list of commands available to you.", loop_offset=8)
-    animate_text_with_sound("Good luck on your hacking adventure!", loop_offset=2)
-    sleep(2)
-    Utility.clear_screen()
+    if not os.path.exists("./filesystems/localhost_filesystem.json"):
+        animate_text_with_sound("Welcome to Hack The Planet!", loop_offset=2)
+        animate_text_with_sound("In just a moment you will be asked to create a login for your terminal.", loop_offset=5)
+        animate_text_with_sound("Once logged into your terminal, you can type 'help' to get a list of commands available to you.", loop_offset=8)
+        animate_text_with_sound("Good luck on your hacking adventure!", loop_offset=2)
+        sleep(2)
+        Utility.clear_screen()
+    else:
+        with open("./filesystems/localhost_filesystem.json", "r") as file:
+            local_loaded_filesystem = json.load(file)
+        username = list(local_loaded_filesystem["/"]["home"].keys())[0]
+        password = local_loaded_filesystem["/"]["etc"][".passwd"]
+        animate_text_with_sound("Welcome back to Hack The Planet!", loop_offset=2)
+        animate_text_with_sound(f"Your user credentials are user: \'{username}\' and password: \'{password}\' in case you forgot.", loop_offset=7)
+        animate_text_with_sound("Once logged into your terminal, you can type 'help' to get a list of commands available to you.", loop_offset=8)
+        animate_text_with_sound("Good luck on your hacking adventure!", loop_offset=4)
+        sleep(2)
+        Utility.clear_screen()
     
     # Booting up system text animation
     loading_kernel_text_animation = animated_text(static_text="Loading Kernel", animated_text="...", end_text="Complete!\n", delay_between_chars=0.15, continue_thread_after_stop_for=3)
-    loading_kernel_text_animation.stop(0.5)
-    configuring_system_settings_text_animation = animated_text(static_text="Configuring System Settings", animated_text="...", end_text="Complete!\n", delay_between_chars=0.15, continue_thread_after_stop_for=3)
-    configuring_system_settings_text_animation.stop(0.5)
+    Sound.play(Sound.COMPLETE_NOTIFICATION, loop=1, pause=0.0)
+    loading_kernel_text_animation.stop(1)
+    configuring_system_settings_text_animation = animated_text(static_text="Loading system configuration settings", animated_text="...", end_text="Complete!\n", delay_between_chars=0.15, continue_thread_after_stop_for=3)
+    Sound.play(Sound.COMPLETE_NOTIFICATION, loop=1, pause=0.0)
+    configuring_system_settings_text_animation.stop(1)
     booting_up_system_text_animation = animated_text(static_text="Booting up system", animated_text="...", end_text="Complete!\n", delay_between_chars=0.15, continue_thread_after_stop_for=3)
-    booting_up_system_text_animation.stop(0.5)
+    Sound.play(Sound.COMPLETE_NOTIFICATION, loop=1, pause=0.0)
+    booting_up_system_text_animation.stop(1.5)
     Utility.clear_screen()
+    sleep(0.5)
     Sound.play(Sound.MAC_OS_STARTUP_MODERN_SOUND)
-    sleep(3)
+    sleep(3.5)
     
     
     Utility.hide_cursor()

@@ -15,6 +15,7 @@ class Sound:
     CONNECTING_TO_COMPUTER_OVER_MODEM_SHORT = 'sounds/connecting_to_computer_over_modem_short.wav'
     DIAL_TONE = 'sounds/dial_tone.wav'
     DIGITAL_TYPING = 'sounds/digital_typing.wav'
+    COMPLETE_NOTIFICATION = 'sounds/complete_notification.wav'
     
     
     @staticmethod
