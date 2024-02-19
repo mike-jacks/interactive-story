@@ -352,7 +352,7 @@ f"""    Apple Terminal Credentials
         else:
             Utility.hide_cursor()
             Utility.clear_multi_line("\n")
-            mission_1_failed_already = True
+            mission_3_failed_already = True
             Utility.clear_screen()
             sleep(0.5)
             animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
