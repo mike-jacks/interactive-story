@@ -6,7 +6,7 @@ from random import choice
 class Animation:
 
     @staticmethod
-    def animated_text(static_text: str, animated_text: str = "...", end_text:str = "", static_text_color: TextColor = TextColor.RESET, animated_text_color: TextColor = TextColor.RESET, end_text_color: TextColor = TextColor.RESET, delay_between_chars: float = 0.1, stop_event = None, continue_thread_after_stop_for = 0.001):
+    def animated_text(static_text: str = "", animated_text: str = "...", end_text:str = "", static_text_color: TextColor = TextColor.RESET, animated_text_color: TextColor = TextColor.RESET, end_text_color: TextColor = TextColor.RESET, delay_between_chars: float = 0.1, stop_event = None, continue_thread_after_stop_for = 0.001):
         def animated_text_thread(stop_event=None):
             while True:
                 if stop_event and stop_event.is_set():

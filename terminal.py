@@ -96,6 +96,9 @@ class Terminal:
     def messenger_window(self, args=[]):
         # display hacker messenger window with the last item in the messages list
         if self.hacker_messages:
+            login_text_thread = Animation.animated_text(static_text="Launching messenger service", animated_text="...", end_text="\n", delay_between_chars=0.3, continue_thread_after_stop_for=2)
+            login_text_thread.stop(0.5)
+            Utility.clear_screen()
             hacker_terminal = Terminal.messengers[0]
             hacker_terminal.enqueue_messages(self.hacker_messages[-1])
             hacker_terminal.display_messages_and_wait()
@@ -104,7 +107,9 @@ class Terminal:
     
     def prompt_for_login(self):
         Utility.hide_cursor()
-        login_text_thread = Animation.animated_text(static_text="", animated_text="Please log in.", end_text="\n", delay_between_chars=0.02)
+        animated_text = "Please log in."
+        login_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="\n", delay_between_chars=0.03)
+        Sound.play(Sound.DIGITAL_TYPING, loop=int((len(animated_text)*0.03*10)), pause=0.083)
         login_text_thread.stop(0.5)
         Utility.show_cursor()
         username = input("Enter your username: ")
@@ -113,12 +118,15 @@ class Terminal:
         
     def prompt_for_create_user(self):
         Utility.hide_cursor()
-        create_new_user_text_thread = Animation.animated_text(static_text="", animated_text="You need to create a new user before being able to login.", end_text="\n", delay_between_chars=0.02)
+        animated_text = "You need to create a new user before being able to login."
+        create_new_user_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="\n", delay_between_chars=0.03)
+        Sound.play(Sound.DIGITAL_TYPING, loop=int((len(animated_text)*0.03*10)+4), pause=0.083)
         create_new_user_text_thread.stop(0.5)
         Utility.show_cursor()
         username = input("Create username: ")
         password = input("Create password: ")
         self.create_user(username, password)
+        Utility.clear_screen()
     
     def add_user(self, username: str, password: str) -> None:
         self.valid_users.append(User(username, password))
@@ -205,9 +213,21 @@ class Terminal:
                 self.active_user = user
                 self.current_path = f"/home/{self.active_user.username}"
                 user_found = True
+                if self.is_user_terminal:
+                    Utility.hide_cursor()
+                    Utility.clear_screen()
+                    animated_text = f"Logged in as {user.username}!"
+                    logged_in_as_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="\n", delay_between_chars=0.03)
+                    Sound.play(Sound.DIGITAL_TYPING, loop=int((len(animated_text)*0.03*10)+2), pause=0.083)
+                    logged_in_as_text_thread.stop(0.5)
+                    sleep(1)
                 return True
         if not user_found:
-            print("Login failed. Invalid username or password.")
+            Utility.hide_cursor()
+            animated_text = "Login failed. Invalid username or password."
+            create_new_user_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="\n", delay_between_chars=0.03)
+            Sound.play(Sound.DIGITAL_TYPING, loop=int((len(animated_text)*0.03*10)+4), pause=0.083)
+            create_new_user_text_thread.stop(0.5)
             self.active_user = None
             return False
         return user_found
@@ -573,6 +593,7 @@ class Terminal:
         self.save_filesystem()
     
     def ssh(self, args):
+        Utility.hide_cursor()
         if not args:
             print("No ip address specified")
             return
@@ -585,6 +606,7 @@ class Terminal:
             connecting_to_ip_text_thread = Animation.animated_text(static_text=f"Connecting to {ip_address}", animated_text=f"...", end_text="Connected\n", delay_between_chars=0.2, continue_thread_after_stop_for=0.1)
             Sound.play(Sound.CONNECTING_TO_COMPUTER_OVER_MODEM_SHORT, pause = 9)
             connecting_to_ip_text_thread.stop(1)
+            Utility.show_cursor()
             username = input("Enter username: ")
             
             target_terminal.ensure_password_file_exists()
@@ -692,6 +714,7 @@ class Terminal:
             # Simulate zipping by copying the directory under a new '.zip' name
             user_terminal.filesystem["/"]["home"][user_terminal_username]["Downloads"][zip_name] = directory
             print(f"Directory '{directory_name}' has been downloaded and zipped as '{zip_name}'.")
+            user_terminal.save_filesystem()
             
     
     def _download_file(self, file_name, content):
@@ -700,6 +723,7 @@ class Terminal:
         if user_terminal:
             user_terminal.filesystem["/"]["home"][user_terminal_username]["Downloads"][file_name] = content
             print(f"File '{file_name}' has been downloaded.")
+            user_terminal.save_filesystem()
     
     def unzip(self, args=[]):
         if not args:
@@ -926,8 +950,10 @@ class Terminal:
             for path in found_paths:
                 print(path)
             print()
+            return True
         else:
             print(f"No matches found for {search_term}\n")
+            return False
                         
                         
     def _append_to_file(self, path, filename, content):
@@ -960,6 +986,24 @@ class Terminal:
         self.save_filesystem()
         sleep(1)
         self.exit_requested = True
+    
+    def update_mission_state(self, mission_id, completed: bool):
+        # Special directory name that is hidden from the user
+        hidden_dir = ".game_states"
+        if hidden_dir not in self.filesystem["/"]:
+            self.filesystem["/"][hidden_dir] = {}
+        
+        # Update the mission state
+        self.filesystem["/"][hidden_dir][mission_id] = completed
+        self.save_filesystem()
+    
+    def is_mission_completed(self, mission_id):
+        # Special directory name that is hidden from the user
+        hidden_dir = ".game_states"
+        if hidden_dir in self.filesystem["/"]:
+            return self.filesystem["/"][hidden_dir].get(mission_id, False)
+        return False
+        
 
 
 def main():

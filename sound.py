@@ -14,6 +14,7 @@ class Sound:
     CONNECTING_TO_COMPUTER_OVER_MODEM_LONG = 'sounds/connecting_to_computer_over_modem_long.wav'
     CONNECTING_TO_COMPUTER_OVER_MODEM_SHORT = 'sounds/connecting_to_computer_over_modem_short.wav'
     DIAL_TONE = 'sounds/dial_tone.wav'
+    DIGITAL_TYPING = 'sounds/digital_typing.wav'
     
     
     @staticmethod
