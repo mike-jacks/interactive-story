@@ -7,6 +7,7 @@ from terminal import Terminal
 import re, sys, os
 from mission import Mission
 import json
+from text_color import TextColor
 
 animated_text = Animation.animated_text
 
@@ -46,7 +47,6 @@ def access_terminal(user_terminal: Terminal, incoming_message: bool, messages: l
                 animated_text_thread = animated_text(static_text="New message incoming", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=2)
                 animated_text_thread.stop(0.5)
                 Utility.clear_screen()
-                sleep(2)
                 update_messenger_and_display(Terminal.messengers[0], messages, animate=True)
                 incoming_message = False
                 Utility.show_cursor()
@@ -59,6 +59,7 @@ def access_terminal(user_terminal: Terminal, incoming_message: bool, messages: l
             user_terminal.exit_requested = False
             break
     print("Quit out of terminal successfully!")
+    sleep(1)
 
 def prompt_to_reload_terminal():
     while True:
@@ -98,18 +99,18 @@ def main():
         animate_text_with_sound("Welcome back to Hack The Planet!", loop_offset=2)
         animate_text_with_sound(f"Your user credentials are user: \'{username}\' and password: \'{password}\' in case you forgot.", loop_offset=7)
         animate_text_with_sound("Once logged into your terminal, you can type 'help' to get a list of commands available to you.", loop_offset=8)
-        animate_text_with_sound("Good luck on your hacking adventure!", loop_offset=4)
+        animate_text_with_sound("Good luck on your hacking adventure!", loop_offset=3)
         sleep(2)
         Utility.clear_screen()
     
     # Booting up system text animation
-    loading_kernel_text_animation = animated_text(static_text="Loading Kernel", animated_text="...", end_text="Complete!\n", delay_between_chars=0.15, continue_thread_after_stop_for=3)
+    loading_kernel_text_animation = animated_text(static_text="Loading Kernel", animated_text="...", end_text=f"{TextColor.GREEN.value}Complete!{TextColor.RESET.value}\n", delay_between_chars=0.15, continue_thread_after_stop_for=3)
     Sound.play(Sound.COMPLETE_NOTIFICATION, loop=1, pause=0.0)
     loading_kernel_text_animation.stop(1)
-    configuring_system_settings_text_animation = animated_text(static_text="Loading system configuration settings", animated_text="...", end_text="Complete!\n", delay_between_chars=0.15, continue_thread_after_stop_for=3)
+    configuring_system_settings_text_animation = animated_text(static_text="Loading system configuration settings", animated_text="...", end_text=f"{TextColor.GREEN.value}Complete!{TextColor.RESET.value}\n", delay_between_chars=0.15, continue_thread_after_stop_for=3)
     Sound.play(Sound.COMPLETE_NOTIFICATION, loop=1, pause=0.0)
     configuring_system_settings_text_animation.stop(1)
-    booting_up_system_text_animation = animated_text(static_text="Booting up system", animated_text="...", end_text="Complete!\n", delay_between_chars=0.15, continue_thread_after_stop_for=3)
+    booting_up_system_text_animation = animated_text(static_text="Booting up system", animated_text="...", end_text=f"{TextColor.GREEN.value}Complete!{TextColor.RESET.value}\n", delay_between_chars=0.15, continue_thread_after_stop_for=3)
     Sound.play(Sound.COMPLETE_NOTIFICATION, loop=1, pause=0.0)
     booting_up_system_text_animation.stop(1.5)
     Utility.clear_screen()
@@ -167,9 +168,13 @@ def main():
     
     
     # Play Mission 1: Gibson Terminal
+    mission_1_failed_already = False
     while not mission_1.is_complete:
         Utility.hide_cursor()
-        access_terminal(user_terminal, incoming_message=True, messages=mission_1.hacker_messeges)
+        if not mission_1_failed_already:
+            access_terminal(user_terminal, incoming_message=True, messages=mission_1.hacker_messages)
+        else:
+            access_terminal(user_terminal, incoming_message=False, messages=mission_1.hacker_messages)
         if not mission_1.enemy_terminal.find(["connections.log", "/"]):
             Utility.clear_multi_line("\n")
             mission_1.is_a_success()
@@ -179,16 +184,27 @@ def main():
             animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
             animated_text_thread = animated_text(static_text="New message incoming", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=2)
             animated_text_thread.stop(0.5)
-            Utility.clear_screen()
             mission_1.enemy_terminal.messenger.enqueue_messages(enemy_messages)
             mission_1.enemy_terminal.messenger.display_messages_and_wait(animate=True)
+            Utility.clear_screen()
             mission_1.enemy_terminal.messenger.wait_for_window_to_close()
             Utility.hide_cursor()
             sleep(2)
             Utility.clear_screen()
         else:
+            Utility.hide_cursor()
             Utility.clear_multi_line("\n")
-            print("Failed to complete Mission 1")
+            mission_1_failed_already = True
+            Utility.clear_screen()
+            sleep(0.5)
+            animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
+            animated_text_thread = animated_text(static_text="New message incoming", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=2)
+            animated_text_thread.stop(0.5)
+            mission_1.load_hacker_messages(hacker_mission_messages["1_FAIL"])
+            mission_1.hacker_messenger.enqueue_messages(mission_1.hacker_messages)
+            mission_1.hacker_messenger.display_messages_and_wait(animate=True)
+            Utility.clear_screen()
+            mission_1.hacker_messenger.wait_for_window_to_close()
             mission_1.is_a_failure()
             prompt_to_reload_terminal()
             Utility.clear_screen()

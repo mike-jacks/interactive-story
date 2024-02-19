@@ -1,16 +1,24 @@
 {
     "1": [
-        "Hey you, you're finally online. I've seen your skills and I have some tasks for you.\n",
+        "Hey you, you're finally online! I've seen your skills and I could use your assistance.\n",
         "I need you to delete some data from a server.\n",
         "I don't have write access so I need you to help me out.\n",
-        "The server address is 18.127.11.23. There should be a file called connections.log. Retrieve the IP address and user credentials from the file and then delete it.\n",
-        "I don't know where it's stored, but try common Unix log locations.\n",
-        "Contact me when you're done.\n"
+        "The server address is 18.127.11.23. There should be a file called 'connections.log.'\n",
+        "Download the file to your computer and then delete it from the Gibson server.\n",
+        "The file should be located where most log files are on UNIX systems.\n",
+        "I'll message you again once you exit your terminal.\n"
+    ],
+    "1_FAIL": [
+        "I can still see the user credentials on th Gibson file server.\n",
+        "Were you not able to find it?\n",
+        "Try looking in the /var/log/ location on the Gibson server.\n",
+        "I need this file deleted. I'll message you again once you exit your terminal.\n"
     ],
     "2": [
         "Well done. I knew as soon as you pulled it off. Their IRC server has been busy with activity.\n",
         "You're going to need to connect to that IP address.\n",
-        "Once you're connected, you'll need to delete their project files. I don't want them to keep developing their tools\n",
+        "Once you're connected, you'll need to delete their project files.\n",
+        "I don't want them to keep developing their tools\n",
         "Delete anything with a .py or .c file extension.\n",
         "Before you disconnect, change the password for the account to 'hacked'.\n",
         "Let me know when you're done.\n"
