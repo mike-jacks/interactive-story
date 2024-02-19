@@ -58,18 +58,19 @@ def access_terminal(user_terminal: Terminal, incoming_message: bool, messages: l
         if user_terminal.exit_requested:
             user_terminal.exit_requested = False
             break
-    print("Quit out of terminal successfully!")
+    animate_text_with_sound(f"Exited out of {user_terminal.terminal_name} terminal successfully!", loop_offset=4,thread_stop_freeze=0.1)
     sleep(1)
 
 def prompt_to_reload_terminal():
     while True:
-        user_input = input("Would you like to reload your terminal attempt to complete the mission? (yes/no): ")
+        animate_text_with_sound("Would you like to reload your terminal attempt to complete the mission? (yes/no): ",end_text="", loop_offset=8,thread_stop_freeze=0.1)
+        user_input = input("")
         if re.match(r"yes|y", user_input):
             break
         elif re.match(r"no|n", user_input):
             sys.exit(0)
         else:
-            print("Invalid input. Please enter 'yes|y' or 'no|n'.")
+            animate_text_with_sound("Invalid input. Please enter 'yes|y' or 'no|n'.", end_text="\n", loop_offset=2,thread_stop_freeze=0.1)
 
 def main():
     Utility.clear_screen()
@@ -77,7 +78,7 @@ def main():
     hackers_animation = load_ascii_art_animation_from_json("./animation_images_json/hackers_animation.json")
     hackers_animation = clean_up_ascii_art_animation(hackers_animation)
     Sound.play(Sound.HACKERS_ANIMATION, loop=1, pause=0.0)
-    hackers_animation_thread = play_ascii_animation(hackers_animation, frames_per_second=30, loop_num_times=0, continue_thread_after_stop_for=0.01)
+    hackers_animation_thread = play_ascii_animation(hackers_animation, frames_per_second=34, loop_num_times=0, continue_thread_after_stop_for=0.01)
     hackers_animation_thread.stop()
     Utility.clear_screen()
     
@@ -123,8 +124,13 @@ def main():
     booting_up_system_text_animation.stop(1.5)
     Utility.clear_screen()
     sleep(0.5)
+    access_granted_animation = load_ascii_art_animation_from_json("./animation_images_json/access_granted.json")
+    access_granted_animation = clean_up_ascii_art_animation(access_granted_animation)
+    access_granted_animation_thread = play_ascii_animation(access_granted_animation, frames_per_second=24, loop_num_times=0, continue_thread_after_stop_for=0.5)
     Sound.play(Sound.MAC_OS_STARTUP_MODERN_SOUND)
-    sleep(3.5)
+    access_granted_animation_thread.stop()
+    sleep(1.5)
+    Utility.clear_screen()
     
     
     Utility.hide_cursor()
@@ -290,6 +296,23 @@ int main() {
             Utility.hide_cursor()
             sleep(2)
             Utility.clear_screen()
+        elif not mission_2.enemy_terminal.find(["main.py", "/"]) and not mission_2.enemy_terminal.find(["main.c", "/"]):
+            Utility.hide_cursor()
+            Utility.clear_multi_line("\n")
+            mission_2_failed_already = True
+            Utility.clear_screen()
+            sleep(0.5)
+            animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
+            animated_text_thread = animated_text(static_text="New message incoming", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=2)
+            animated_text_thread.stop(0.5)
+            mission_2.load_hacker_messages(hacker_mission_messages["2_FAIL_CHANGE_PASSWORD"])
+            mission_2.hacker_messenger.enqueue_messages(mission_2.hacker_messages)
+            mission_2.hacker_messenger.display_messages_and_wait(animate=True)
+            Utility.clear_screen()
+            mission_2.hacker_messenger.wait_for_window_to_close()
+            mission_2.is_a_failure()
+            prompt_to_reload_terminal()
+            Utility.clear_screen()
         else:
             Utility.hide_cursor()
             Utility.clear_multi_line("\n")
@@ -299,7 +322,7 @@ int main() {
             animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
             animated_text_thread = animated_text(static_text="New message incoming", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=2)
             animated_text_thread.stop(0.5)
-            mission_2.load_hacker_messages(hacker_mission_messages["2_FAIL"])
+            mission_2.load_hacker_messages(hacker_mission_messages["2_FAIL_DELETE_FILES"])
             mission_2.hacker_messenger.enqueue_messages(mission_2.hacker_messages)
             mission_2.hacker_messenger.display_messages_and_wait(animate=True)
             Utility.clear_screen()
@@ -379,6 +402,9 @@ f"""    Apple Terminal Credentials
     print("You are now a certified hacker!")
     print("You have successfully hacked the planet!")
     print("Congratulations!")
+    reset_game = input("Would you like to reset the game? (yes/no): ")
+    if re.match(r"yes|y", reset_game):
+        mission_3.user_terminal.reset_game()
     
     
 if __name__ == "__main__":
