@@ -74,6 +74,7 @@ def prompt_to_reload_terminal():
 
 def main():
     Utility.clear_screen()
+    Utility.hide_cursor()
     # Test animation
     hackers_animation = load_ascii_art_animation_from_json("./animation_images_json/hackers_animation.json")
     hackers_animation = clean_up_ascii_art_animation(hackers_animation)
@@ -399,12 +400,15 @@ f"""    Apple Terminal Credentials
             mission_3.is_a_failure()
             prompt_to_reload_terminal()
             Utility.clear_screen()
-            
-    print("All missions completed successfully!")
-    print("You are now a certified hacker!")
-    print("You have successfully hacked the planet!")
-    print("Congratulations!")
-    reset_game = input("Would you like to reset the game? (yes/no): ")
+    
+    animate_text_with_sound("All missions completed successfully!", loop_offset=2)
+    animate_text_with_sound("You are now a certified hacker!", loop_offset=2)
+    animate_text_with_sound("You have successfully hacked the planet!", loop_offset=2)
+    animate_text_with_sound("Congratulations!", loop_offset=2)
+    
+    animate_text_with_sound("Would you like to reset the game? (yes/no): ", end_text="", loop_offset=2)
+    Utility.show_cursor()
+    reset_game = input("")
     if re.match(r"yes|y", reset_game):
         mission_3.user_terminal.reset_game()
     
