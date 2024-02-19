@@ -72,23 +72,6 @@ def prompt_to_reload_terminal():
 
 def main():
     Utility.clear_screen()
-    Utility.hide_cursor()
-    # Initialize Terminals
-    user_terminal = Terminal(terminal_name="localhost", terminal_ip_address="127.0.0.1", is_user_terminal=True)
-    gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.127.11.23", terminal_username="admin", terminal_password="god")
-    microsoft_terminal = Terminal(terminal_name="microsoft", terminal_ip_address="18.23.123.11", terminal_username="root", terminal_password="M$FT")
-    apple_terminal = Terminal(terminal_name="apple", terminal_ip_address="182.124.12.132", terminal_username="apple", terminal_password="M@c1nt0sh")
-
-    # Initialize Messengers
-    hacker_messenger = Terminal.messengers[0]
-    gibson_messenger = gibson_terminal.messenger
-    microsoft_messenger = microsoft_terminal.messenger
-    apple_messenger = apple_terminal.messenger
-    
-    #Load hacker messages json:
-    with open("./hacker_mission_messages.json", "r") as file:
-        hacker_mission_messages = json.load(file)
-    
     
     
     # Add opening animated logo and display on screen
@@ -118,27 +101,31 @@ def main():
     sleep(3)
     
     
-    # Load mission 1:
-    # hacker_messages = [
-    #     f"Hi {user_terminal.valid_users[0].username}!\n",
-    #     "I'm a hacker and I hear you are a pretty good hacker yourself!\n",
-    #     "I need your help to modify files on the Gibson terminal.\n",
-    #     "For some reason I can't write or modify files on the Gibson terminal, only read\n",
-    #     "I have placed a file in your Downloads folder for you to gain access.\n",
-    #     "Please change the password of the admin user to 'hacked'.\n",
-    #     "Once completed, please log out of your terminal and I will message you with further instructions.\n",
-    #     "I am watching you...\n",
-    #     "P.S. Once logged into a terminal type 'help' to see a list of commands you can use in the terminal.\n",
-    #     f"P.P.S. Just a reminder your username is: \"{user_terminal.valid_users[0].username}\"and your password is: \"{user_terminal.filesystem["/"]["etc"][".passwd"]}\" in case you forgot.\n",
-    # ]
+    Utility.hide_cursor()
+    # Initialize Terminals
+    user_terminal = Terminal(terminal_name="localhost", terminal_ip_address="127.0.0.1", is_user_terminal=True)
+    gibson_terminal = Terminal(terminal_name="gibson", terminal_ip_address="18.127.11.23", terminal_username="admin", terminal_password="god")
+    microsoft_terminal = Terminal(terminal_name="microsoft", terminal_ip_address="18.23.123.11", terminal_username="root", terminal_password="M$FT")
+    apple_terminal = Terminal(terminal_name="apple", terminal_ip_address="182.124.12.132", terminal_username="apple", terminal_password="M@c1nt0sh")
+
+    # Initialize Messengers
+    hacker_messenger = Terminal.messengers[0]
+    gibson_messenger = gibson_terminal.messenger
+    microsoft_messenger = microsoft_terminal.messenger
+    apple_messenger = apple_terminal.messenger
     
+    #Load hacker messages json:
+    with open("./hacker_mission_messages.json", "r") as file:
+        hacker_mission_messages = json.load(file)
+    
+    
+    
+    # Build Mission 1: Gibson Terminal
     enemy_messages = [
         "Listen here, punk. I don't know who you are, but you better watch yourself.\n",
         "Tell me who you're working for and I might go easy on you.\n"
     ]
     
-    # Mission Building
-    # Mission 1: Gibson Terminal
     mission_1 = Mission("Mission 1: Gibson Terminal", user_terminal, gibson_terminal, hacker_mission_messages["1"], enemy_messages)
     if not mission_1.is_complete:
         user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.txt",
@@ -162,7 +149,32 @@ def main():
     """)
     
     
-    # Mission 2: Microsoft Terminal
+    # Play Mission 1: Gibson Terminal
+    while not mission_1.is_complete:
+        Utility.hide_cursor()
+        access_terminal(user_terminal, incoming_message=True, messages=mission_1.hacker_messeges)
+        if not mission_1.enemy_terminal.find(["connections.log", "/"]):
+            Utility.clear_multi_line("\n")
+            mission_1.is_a_success()
+            Utility.hide_cursor()
+            animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
+            animated_text_thread = animated_text(static_text="New message incoming", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=2)
+            animated_text_thread.stop(0.5)
+            Utility.clear_screen()
+            mission_1.enemy_terminal.messenger.enqueue_messages(enemy_messages)
+            mission_1.enemy_terminal.messenger.display_messages_and_wait(animate=True)
+            mission_1.enemy_terminal.messenger.wait_for_window_to_close()
+            sleep(2)
+            Utility.clear_screen()
+        else:
+            Utility.clear_multi_line("\n")
+            print("Failed to complete Mission 1")
+            mission_1.is_a_failure()
+            prompt_to_reload_terminal()
+            Utility.clear_screen()
+    
+    
+    # Build Mission 2: Microsoft Terminal
     mission_2 = Mission("Mission 2: Microsoft Terminal", user_terminal, microsoft_terminal, hacker_mission_messages["2"], enemy_messages)
     if mission_1.is_complete and not mission_2.is_complete:
         with open("./main.py", "r") as fobj:
@@ -199,44 +211,8 @@ int main() {
     """
         mission_2.enemy_terminal._add_file_to_filesystem(f"/home/{mission_2.enemy_terminal.valid_users[0].username}/Desktop", "main.py", main_py_content)
         mission_2.enemy_terminal._add_file_to_filesystem(f"/home/{mission_2.enemy_terminal.valid_users[0].username}/Desktop", "main.c", c)
-        
-        
-        
-    # Mission 3: Apple Terminal
-    mission_3 = Mission("Mission 3: Apple Terminal", user_terminal, apple_terminal, hacker_mission_messages["3"], enemy_messages)
-    if mission_1.is_complete and mission_2.is_complete and not mission_3.is_complete:
-        security_footage = load_ascii_art_animation_from_json("./animation_images_json/security.json")
-        mission_3.enemy_terminal._add_file_to_filesystem(f"/home/{apple_terminal.valid_users[0].username}/Movies", "security_footage.mp4", security_footage)
-        mission_3.user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "apple_credentials.info", 
-f"""    Apple Terminal Credentials
-    --------------------------
-    IP Address: {apple_terminal.terminal_ip_address}
-    Username: {apple_terminal.valid_users[0].username}
-    Password: {apple_terminal.filesystem["/"]["etc"][".passwd"]}
-    ---------------------------
-"""
-                                                        )
-        
-    # Access user terminal
     
-    while not mission_1.is_complete:
-        Utility.hide_cursor()
-        access_terminal(user_terminal, incoming_message=True, messages=mission_1.hacker_messeges)
-        if not mission_1.enemy_terminal.find(["connections.log", "/"]):
-            Utility.clear_multi_line("\n")
-            mission_1.is_a_success()
-            print("Mission 1 completed successfully!")
-            print("enemy message displays here")
-            sleep(2)
-            Utility.clear_screen()
-        else:
-            Utility.clear_multi_line("\n")
-            print("Failed to complete Mission 1")
-            mission_1.is_a_failure()
-            prompt_to_reload_terminal()
-            Utility.clear_screen()
-
-
+    # Play Mission 2: Microsoft Terminal
     while not mission_2.is_complete:
         Utility.hide_cursor()
         access_terminal(user_terminal, incoming_message=True, messages=mission_2.hacker_messeges)
@@ -253,7 +229,24 @@ f"""    Apple Terminal Credentials
             mission_2.is_a_failure()
             prompt_to_reload_terminal()
             Utility.clear_screen()
+        
+        
+    # Build Mission 3: Apple Terminal
+    mission_3 = Mission("Mission 3: Apple Terminal", user_terminal, apple_terminal, hacker_mission_messages["3"], enemy_messages)
+    if mission_1.is_complete and mission_2.is_complete and not mission_3.is_complete:
+        security_footage = load_ascii_art_animation_from_json("./animation_images_json/security.json")
+        mission_3.enemy_terminal._add_file_to_filesystem(f"/home/{apple_terminal.valid_users[0].username}/Movies", "security_footage.mp4", security_footage)
+        mission_3.user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "apple_credentials.info", 
+f"""    Apple Terminal Credentials
+    --------------------------
+    IP Address: {apple_terminal.terminal_ip_address}
+    Username: {apple_terminal.valid_users[0].username}
+    Password: {apple_terminal.filesystem["/"]["etc"][".passwd"]}
+    ---------------------------
+"""
+                                                        )
     
+    # Play Mission 3: Apple Terminal
     while not mission_3.is_complete:
         Utility.hide_cursor()
         access_terminal(user_terminal, incoming_message=True, messages=mission_3.hacker_messeges)
