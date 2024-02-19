@@ -92,6 +92,7 @@ def main():
     
     
     # Add opening animated logo and display on screen
+    Utility.hide_cursor()
     hack_the_planet_animation = load_ascii_art_animation_from_json("./animation_images_json/hack_the_planet_animation.json")
     play_ascii_animation(hack_the_planet_animation, frames_per_second=24)
     Utility.clear_screen()
@@ -163,7 +164,7 @@ def main():
     
     # Mission 2: Microsoft Terminal
     mission_2 = Mission("Mission 2: Microsoft Terminal", user_terminal, microsoft_terminal, hacker_mission_messages["2"], enemy_messages)
-    if not mission_2.is_complete:
+    if mission_1.is_complete and not mission_2.is_complete:
         with open("./main.py", "r") as fobj:
             main_py_content = fobj.read()
         c = """
@@ -203,7 +204,7 @@ int main() {
         
     # Mission 3: Apple Terminal
     mission_3 = Mission("Mission 3: Apple Terminal", user_terminal, apple_terminal, hacker_mission_messages["3"], enemy_messages)
-    if not mission_3.is_complete:
+    if mission_1.is_complete and mission_2.is_complete and not mission_3.is_complete:
         security_footage = load_ascii_art_animation_from_json("./animation_images_json/security.json")
         mission_3.enemy_terminal._add_file_to_filesystem(f"/home/{apple_terminal.valid_users[0].username}/Movies", "security_footage.mp4", security_footage)
         mission_3.user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "apple_credentials.info", 
