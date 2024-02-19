@@ -345,7 +345,9 @@ int main() {
     mission_3 = Mission("Mission 3: Apple Terminal", user_terminal, apple_terminal, hacker_mission_messages["3"], enemy_messages)
     if mission_1.is_complete and mission_2.is_complete and not mission_3.is_complete:
         security_footage = load_ascii_art_animation_from_json("./animation_images_json/security.json")
+        footage2 = load_ascii_art_animation_from_json("./animation_images_json/street.json")
         mission_3.enemy_terminal._add_file_to_filesystem(f"/home/{apple_terminal.valid_users[0].username}/Movies", "security_footage.mp4", security_footage)
+        mission_3.enemy_terminal._add_file_to_filesystem(f"/home/{apple_terminal.valid_users[0].username}/Movies", "security_footage2.mp4", footage2)
         mission_3.user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "apple_credentials.info", 
 f"""    Apple Terminal Credentials
     --------------------------
