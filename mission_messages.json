@@ -1,0 +1,92 @@
+{
+  "1": [
+    "Hey, you're on. Took you long enough. We've got work to do.\n",
+    "There's a file hiding in the Gibson's depths. It's labelled 'garbage', but to us, it's gold.\n",
+    "I've dropped what you need to access their system in your Downloads.\n",
+    "Snatch that file. Then purge it from their records.\n",
+    "Look in the usual places. Unix systems don't vary much. Find it, take it, erase it.\n",
+    "Finish up and log out. I’ll ping you with the next steps once you're back in the real world.\n"
+  ],
+  "1_FAIL": [
+    "I checked the logs. The file is still sitting pretty. Lost?\n",
+    "Head over to /var/log/. It’s not just logs; it's a goldmine.\n",
+    "Remember, download then delete. It’s a dance. Get the steps right.\n",
+    "Wrap this up. I'm waiting on the other side. Don't dawdle.\n"
+  ],
+  "1_SUCCESS": [
+    "Alert: Security Breach Detected.\n",
+    "An unauthorized entity has accessed and altered internal data.\n",
+    "The 'garbage' file integral to our system's operation has been compromised.\n",
+    "We demand an immediate cessation of all unauthorized activities within our network.\n",
+    "Gibson's cyber forensics team is actively tracking the digital breach footprint.\n",
+    "Restitution and legal actions will follow according to the severity of data manipulation.\n",
+    "Gibson Security."
+  ],
+  "2": [
+    "Damn, you actually did it. And what's this?\n",
+    "Microsoft credentials!? This... this changes everything...\n",
+    "I gave Microsoft my best, and they backstabbed me.\n",
+    "Poured my heart and soul into Window OS, and they bastardized it for greed.\n",
+    "I had these amazing ideas to bring efficiencies and speed, but they said the cost and time to implement was too steep.\n",
+    "They didn't care about the user experience. They just wanted to line their pockets. Hence, Windows Vista was released.\n",
+    "They never learned their lesson. And kept patching and patching till they gave up.\n",
+    "Now you're gonna help me settle the score.\n",
+    "Hack into their server. I want their project files turned to dust. Delete anything ending in '.c'.\n",
+    "Also, change the server password to 'hacked'. Let them know who did this. It's more than revenge; it's justice.\n",
+    "This is our message to the corporate giants. Do this, and we're more than just a team; we're a force.\n",
+    "I’ll be waiting with what’s next once you're out of the matrix.\n"
+  ],
+  "2_FAIL_DELETE_FILES": [
+    "The data's still there. Microsoft's server hasn't felt our wrath yet.\n",
+    "Check everywhere. Their Desktop, Documents. They're sloppy, they leave their files out in the open.\n",
+    "Deleting these files isn't just a task; it's a statement. Don't let me down.\n",
+    "I'll be here, waiting for the good news. Don't make me wait too long.\n"
+  ],
+  "2_FAIL_CHANGE_PASSWORD": [
+    "Did you forget something? The password remains unchanged.\n",
+    "Need a hint? The /etc/ directory holds the key to their 'hidden' secrets.\n",
+    "Changing their password isn't just breaking in; it's taking over. It's making it ours.\n",
+    "I'll reach out to you once you're out. This isn't just a job; it's personal. Finish it.\n"
+  ],
+  "2_SUCCESS": [
+    "Critical Alert: System Compromise.\n",
+    "Unauthorized changes have been detected within our server infrastructure.\n",
+    "Critical project files have been removed and server credentials altered.\n",
+    "Immediate restoration of administrative access is required. Provide the new credentials at once.\n",
+    "Microsoft's security division is launching a full-scale investigation into this act of cyber sabotage.\n",
+    "Failure to comply will result in maximum legal prosecution.\n",
+    "Microsoft Global Security."
+  ],
+  "3": [
+    "This is it, the final stretch. Apple's got eyes everywhere, but this time, they saw too much.\n",
+    "We've got a mole on the inside, someone who believes in the cause, someone risking everything for us.\n",
+    "Their security cameras caught our friend in action. We need to scrub that footage clean, leave no trace behind.\n",
+    "But listen, it's crucial we keep the rest intact. We're not here to cause unnecessary chaos; we're here for precision.\n",
+    "Wipe the mole's presence from their archives. Be surgical. Nothing else should be touched.\n",
+    "Do this right, I'll be waiting. Make it count.\n"
+  ],
+  "3_FAIL": [
+    "The mission's not over. Our mole's identity is still compromised, hanging by a thread in Apple's surveillance network.\n",
+    "Precision was key, yet the digital footprint remains. This isn't just about erasing a tape; it's about saving an ally from the spotlight.\n",
+    "Dive back into the shadows. The footage, our comrade's ghost, it still haunts their servers. We need to act, and fast.\n",
+    "I'm counting on you, more than ever. This isn't just another task; it's a lifeline. Erase the evidence, protect our inside voice.\n"
+  ],
+  "END": [
+    "This is it, the end of the line. You've gone above and beyond, diving into the digital abyss and emerging unscathed.\n",
+    "Our journey was more than just about hacking; it was about revealing truths, about fighting back against the faceless giants.\n",
+    "You've proven not just your skills, but your dedication to our cause. The shadows we've cast will linger long in the corridors of power.\n",
+    "But every story has its end, and this is ours. We've changed the game, left our mark, and now, we fade back into the ether.\n",
+    "Remember, though we part ways, the fight isn't over. The system, the establishment, the silent guardians of the status quo... they remain.\n",
+    "Keep your eyes open, stay vigilant, and never forget: in the digital world, we're all just a keystroke away from the next revolution.\n",
+    "Farewell, my friend. Until our paths cross again in the shadows of the net.\n"
+  ],
+  "3_SUCCESS": [
+    "Security Warning: Unauthorized Access Detected.\n",
+    "Our internal surveillance network has identified illicit removal of specific video footage.\n",
+    "The integrity of our security archives has been compromised, risking internal confidentiality.\n",
+    "We demand a full report on the extent of data accessed and any other unauthorized modifications.\n",
+    "Apple's security protocols have been initiated to counteract and mitigate the breach impacts.\n",
+    "Legal repercussions and enforcement actions are currently being formulated and will be pursued.\n",
+    "Apple Corporate Security."
+  ]
+}
