@@ -210,6 +210,16 @@ def main():
             Utility.clear_screen()
     
     
+    
+    enemy_messages = [
+                "We have detected unauthorized access to our servers and the deletion of crucial code files. Our security protocols have been triggered, and we are actively investigating this breach. This is a serious violation of our terms of service and legal agreements.\n",
+                "We strongly advise you to cease any further activities immediately.\n",
+                "Microsoft takes these matters very seriously, and we will pursue legal action to the fullest extent of the law to address this breach.\n",
+                "If you believe there is a misunderstanding or if you have concerns, we urge you to contact our legal department at 555-867-5309 within the next 24 hours to discuss this matter further.\n",
+                "Please be aware that your actions are being tracked, and the appropriate authorities have been notified.\n",
+                "Regards,\n",
+                "Microsoft Security Team\n"
+            ]
     # Build Mission 2: Microsoft Terminal
     mission_2 = Mission("Mission 2: Microsoft Terminal", user_terminal, microsoft_terminal, hacker_mission_messages["2"], enemy_messages)
     if mission_1.is_complete and not mission_2.is_complete:
@@ -249,24 +259,57 @@ int main() {
         mission_2.enemy_terminal._add_file_to_filesystem(f"/home/{mission_2.enemy_terminal.valid_users[0].username}/Desktop", "main.c", c)
     
     # Play Mission 2: Microsoft Terminal
+    mission_2_failed_already = False
     while not mission_2.is_complete:
         Utility.hide_cursor()
-        access_terminal(user_terminal, incoming_message=True, messages=mission_2.hacker_messeges)
+        if not mission_2_failed_already:
+            access_terminal(user_terminal, incoming_message=True, messages=mission_2.hacker_messages)
+        else:
+            access_terminal(user_terminal, incoming_message=False, messages=mission_2.hacker_messages)
         if not mission_2.enemy_terminal.find(["main.py", "/"]) and not mission_2.enemy_terminal.find(["main.c", "/"]) and mission_2.enemy_terminal.filesystem["/"]["etc"][".passwd"] == "hacked":
             Utility.clear_multi_line("\n")
             mission_2.is_a_success()
-            print("Mission 2 completed successfully!")
-            print("Mission 2 enemy message displays here")
+            Utility.hide_cursor()
+            Utility.clear_screen()
+            sleep(1)
+            animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
+            animated_text_thread = animated_text(static_text="New message incoming", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=2)
+            animated_text_thread.stop(0.5)
+            mission_2.enemy_terminal.messenger.enqueue_messages(enemy_messages)
+            mission_2.enemy_terminal.messenger.display_messages_and_wait(animate=True)
+            Utility.clear_screen()
+            mission_2.enemy_terminal.messenger.wait_for_window_to_close()
+            Utility.hide_cursor()
             sleep(2)
             Utility.clear_screen()
         else:
+            Utility.hide_cursor()
             Utility.clear_multi_line("\n")
-            print("Failed to complete Mission 2")
+            mission_2_failed_already = True
+            Utility.clear_screen()
+            sleep(0.5)
+            animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
+            animated_text_thread = animated_text(static_text="New message incoming", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=2)
+            animated_text_thread.stop(0.5)
+            mission_2.load_hacker_messages(hacker_mission_messages["2_FAIL"])
+            mission_2.hacker_messenger.enqueue_messages(mission_2.hacker_messages)
+            mission_2.hacker_messenger.display_messages_and_wait(animate=True)
+            Utility.clear_screen()
+            mission_2.hacker_messenger.wait_for_window_to_close()
             mission_2.is_a_failure()
             prompt_to_reload_terminal()
             Utility.clear_screen()
         
-        
+    
+    
+    enemy_messages = [
+                "Your little stunt has not gone unnoticed. We've detected your intrusion into our sacred digital realm. Did you really think you could waltz into Apple's servers undetected?\n",
+                "Your actions have consequences. We don't take kindly to those who dare to tamper with the foundation of our innovation. We're not just a company; we're a fortress, and you've just breached our walls.\n",
+                "Consider this your only warning: cease your activities immediately. The shadows you're playing in have eyes, and they are relentless. You may think you're invisible, but remember, anonymity is a fragile illusion.\n",
+                "This isn't a game. We have the means, the will, and the resources to track you down. You might want to think twice before crossing the line again.\n",
+                "This is your only chance to reconsider your choices.\n"
+            ]
+    
     # Build Mission 3: Apple Terminal
     mission_3 = Mission("Mission 3: Apple Terminal", user_terminal, apple_terminal, hacker_mission_messages["3"], enemy_messages)
     if mission_1.is_complete and mission_2.is_complete and not mission_3.is_complete:
@@ -283,19 +326,43 @@ f"""    Apple Terminal Credentials
                                                         )
     
     # Play Mission 3: Apple Terminal
+    mission_3_failed_already = False
     while not mission_3.is_complete:
         Utility.hide_cursor()
-        access_terminal(user_terminal, incoming_message=True, messages=mission_3.hacker_messeges)
+        if not mission_1_failed_already:
+            access_terminal(user_terminal, incoming_message=True, messages=mission_3.hacker_messages)
+        else:
+            access_terminal(user_terminal, incoming_message=False, messages=mission_3.hacker_messages)
         if not mission_3.enemy_terminal.find(["security_footage.mp4", "/"]):
             Utility.clear_multi_line("\n")
             mission_3.is_a_success()
-            print("Mission 3 completed successfully!")
-            print("Mission 3 enemy message displays here")
+            Utility.hide_cursor()
+            Utility.clear_screen()
+            sleep(1)
+            animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
+            animated_text_thread = animated_text(static_text="New message incoming", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=2)
+            animated_text_thread.stop(0.5)
+            mission_3.enemy_terminal.messenger.enqueue_messages(enemy_messages)
+            mission_3.enemy_terminal.messenger.display_messages_and_wait(animate=True)
+            Utility.clear_screen()
+            mission_3.enemy_terminal.messenger.wait_for_window_to_close()
+            Utility.hide_cursor()
             sleep(2)
             Utility.clear_screen()
         else:
+            Utility.hide_cursor()
             Utility.clear_multi_line("\n")
-            print("Failed to complete Mission 3")
+            mission_1_failed_already = True
+            Utility.clear_screen()
+            sleep(0.5)
+            animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
+            animated_text_thread = animated_text(static_text="New message incoming", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=2)
+            animated_text_thread.stop(0.5)
+            mission_3.load_hacker_messages(hacker_mission_messages["3_FAIL"])
+            mission_3.hacker_messenger.enqueue_messages(mission_3.hacker_messages)
+            mission_3.hacker_messenger.display_messages_and_wait(animate=True)
+            Utility.clear_screen()
+            mission_3.hacker_messenger.wait_for_window_to_close()
             mission_3.is_a_failure()
             prompt_to_reload_terminal()
             Utility.clear_screen()

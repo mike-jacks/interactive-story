@@ -23,6 +23,12 @@
         "Before you disconnect, change the password for the account to 'hacked'.\n",
         "Let me know when you're done.\n"
     ],
+    "2_FAIL": [
+        "I can still see the project files on Microsoft's server.\n",
+        "Were you not able to find them?\n",
+        "Try looking on the Desktop, Microsoft is lazy with their files.\n",
+        "I need these files deleted. I'll message you again once you exit your terminal.\n"
+    ],
     "3": [
         "Well it seems my intel was right, you certainly know your stuff.\n",
         "I have one last task for you.\n",
