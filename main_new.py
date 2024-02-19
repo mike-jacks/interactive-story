@@ -157,6 +157,8 @@ def main():
             Utility.clear_multi_line("\n")
             mission_1.is_a_success()
             Utility.hide_cursor()
+            Utility.clear_screen()
+            sleep(1)
             animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
             animated_text_thread = animated_text(static_text="New message incoming", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=2)
             animated_text_thread.stop(0.5)
@@ -164,6 +166,7 @@ def main():
             mission_1.enemy_terminal.messenger.enqueue_messages(enemy_messages)
             mission_1.enemy_terminal.messenger.display_messages_and_wait(animate=True)
             mission_1.enemy_terminal.messenger.wait_for_window_to_close()
+            Utility.hide_cursor()
             sleep(2)
             Utility.clear_screen()
         else:
