@@ -90,7 +90,7 @@ def main():
         hacker_mission_messages = json.load(file)
     
     
-    """
+    
     # Add opening animated logo and display on screen
     hack_the_planet_animation = load_ascii_art_animation_from_json("./animation_images_json/hack_the_planet_animation.json")
     play_ascii_animation(hack_the_planet_animation, frames_per_second=24)
@@ -115,7 +115,7 @@ def main():
     Utility.clear_screen()
     Sound.play(Sound.MAC_OS_STARTUP_MODERN_SOUND)
     sleep(3)
-    """
+    
     
     # Load mission 1:
     # hacker_messages = [
