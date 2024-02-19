@@ -600,7 +600,13 @@ class Terminal:
         ip_address = args[0]
         target_terminal = next((t for t in Terminal.terminals if t.terminal_ip_address == ip_address), None)
         if not target_terminal:
-            print(f"Terminal with IP address '{ip_address}' not found.")
+            connecting_to_ip_text_thread = Animation.animated_text(static_text=f"Connecting to {ip_address}", animated_text=f"...", end_text="No Response\n", delay_between_chars=0.2, continue_thread_after_stop_for=0.1)
+            Sound.play(Sound.CONNECTING_TO_COMPUTER_OVER_MODEM_SHORT, pause = 9)
+            connecting_to_ip_text_thread.stop(1)
+            animated_text = f"Terminal with IP address '{ip_address}' not found."
+            ip_address_not_found_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="\n", delay_between_chars=0.03)
+            Sound.play(Sound.DIGITAL_TYPING, loop=int((len(animated_text)*0.03*10)+4), pause=0.083)
+            ip_address_not_found_text_thread.stop(0.5)
             return
         if target_terminal:
             connecting_to_ip_text_thread = Animation.animated_text(static_text=f"Connecting to {ip_address}", animated_text=f"...", end_text="Connected\n", delay_between_chars=0.2, continue_thread_after_stop_for=0.1)
@@ -619,16 +625,26 @@ class Terminal:
                 target_terminal.current_path = f"/home/{username}"
                 password = input("Enter password: ")
                 if target_terminal.filesystem["/"]["etc"][".passwd"] == password:
+                    Utility.hide_cursor()
                     target_terminal.in_ssh_session = True
-                    print(f"Logged into {target_terminal.terminal_name} terminal as {username}.")
+                    animated_text = f"Logged into {target_terminal.terminal_name} terminal as {username}."
+                    logged_in_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="\n", delay_between_chars=0.03)
+                    Sound.play(Sound.DIGITAL_TYPING, loop=int((len(animated_text)*0.03*10)+3), pause=0.083)
+                    logged_in_text_thread.stop(0.5)
                     sleep(1)
+                    Utility.clear_screen()
                     while not target_terminal.exit_requested:
+                        Utility.show_cursor()
                         action = input(f"{target_terminal.active_user.username}@{target_terminal.terminal_name}:{target_terminal.current_path}$ ")
                         target_terminal.execute(action)
                         if target_terminal.exit_requested:
                             target_terminal.exit_requested = False
                             break
-                    print(f"Quit out of {target_terminal.terminal_name} terminal successfully!")
+                    Utility.hide_cursor()
+                    self._animate_typing_text_with_sound(f"Exited out of {target_terminal.terminal_name} terminal successfully!")
+                    sleep(0.5)
+                    Utility.clear_screen()
+                    Utility.show_cursor()
                     target_terminal.in_ssh_session = False
                     return
                 else:
@@ -982,10 +998,18 @@ class Terminal:
         Utility.clear_screen()
     
     def exit(self, args=[]):
-        print("Exiting terminal...")
+        self._animate_typing_text_with_sound("Exiting terminal", end_text="", delay_between_chars=0.03, loop_offset=1)
+        text_animation_thread = Animation.animated_text(static_text="Exiting terminal", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=1)
+        text_animation_thread.stop(0.01)
         self.save_filesystem()
         sleep(1)
         self.exit_requested = True
+    
+    def _animate_typing_text_with_sound(self, text, end_text = "\n", delay_between_chars=0.03, loop_offset = 0):
+        Utility.hide_cursor()
+        animated_text_thread = Animation.animated_text(static_text="", animated_text=text, end_text=end_text, delay_between_chars=delay_between_chars, continue_thread_after_stop_for=0)
+        Sound.play(Sound.DIGITAL_TYPING, loop=int((len(text)*0.03*10) + loop_offset), pause=0.083)
+        animated_text_thread.stop(0.0)
     
     def update_mission_state(self, mission_id, completed: bool):
         # Special directory name that is hidden from the user
