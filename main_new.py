@@ -1,5 +1,5 @@
 from utility import Utility
-from ascii_animation import load_ascii_art_animation_from_json, play_ascii_animation
+from ascii_animation import load_ascii_art_animation_from_json, play_ascii_animation, clean_up_ascii_art_animation
 from animation import Animation
 from sound import Sound
 from time import sleep
@@ -72,6 +72,13 @@ def prompt_to_reload_terminal():
             print("Invalid input. Please enter 'yes|y' or 'no|n'.")
 
 def main():
+    Utility.clear_screen()
+    # Test animation
+    hackers_animation = load_ascii_art_animation_from_json("./animation_images_json/hackers_animation.json")
+    hackers_animation = clean_up_ascii_art_animation(hackers_animation)
+    Sound.play(Sound.HACKERS_ANIMATION, loop=1, pause=0.0)
+    hackers_animation_thread = play_ascii_animation(hackers_animation, frames_per_second=28, loop_num_times=0, continue_thread_after_stop_for=0.01)
+    hackers_animation_thread.stop()
     Utility.clear_screen()
     
     

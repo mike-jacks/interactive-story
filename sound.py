@@ -16,6 +16,7 @@ class Sound:
     DIAL_TONE = 'sounds/dial_tone.wav'
     DIGITAL_TYPING = 'sounds/digital_typing.wav'
     COMPLETE_NOTIFICATION = 'sounds/complete_notification.wav'
+    HACKERS_ANIMATION = 'sounds/hackers_animation.wav'
     
     
     @staticmethod
