@@ -123,7 +123,7 @@ def main():
     hackers_animation = load_ascii_art_animation_from_json("./animation_images_json/hackers_animation.json")
     #hackers_animation = clean_up_ascii_art_animation(hackers_animation)
     Sound.play(Sound.HACKERS_ANIMATION, loop=1, pause=0.0)
-    hackers_animation_thread = play_ascii_animation(hackers_animation, frames_per_second=29, loop_num_times=0, continue_thread_after_stop_for=0.01)
+    hackers_animation_thread = play_ascii_animation(hackers_animation, frames_per_second=28.5, loop_num_times=0, continue_thread_after_stop_for=0.01)
     hackers_animation_thread.stop()
     Utility.clear_screen()
     
@@ -259,8 +259,8 @@ def main():
             animated_text_thread.stop(0.5)
             mission_1.enemy_terminal.messenger.enqueue_messages(mission_1.enemy_messages)
             mission_1.enemy_terminal.messenger.display_messages_and_wait(animate=True)
-            mission_1.enemy_terminal.messenger.wait_for_window_to_close()
             Utility.clear_screen()
+            mission_1.enemy_terminal.messenger.wait_for_window_to_close()
             Utility.hide_cursor()
             sleep(2)
             Utility.clear_screen()

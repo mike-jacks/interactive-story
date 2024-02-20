@@ -159,7 +159,7 @@ class MessageTerminal(ABC):
         result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
         return "true" in result.stdout.strip()
 
-    def wait_for_window_to_close(self, timeout=60):
+    def wait_for_window_to_close(self, timeout=100):
         """
         Waits for the terminal window to close within a specified timeout.
 

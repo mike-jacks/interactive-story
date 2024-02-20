@@ -859,7 +859,6 @@ class Terminal:
                 create_new_user_text_thread.stop(1.5)
                 Utility.show_cursor()
                 Utility.clear_screen()
-                self.save_filesystem()
                 sys.exit(0)
             except Exception as e:
                 print(f"Error resetting game: {e}")
