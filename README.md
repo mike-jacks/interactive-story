@@ -18,6 +18,8 @@ This was a very fun and challenging project. Part of the challenge was not havin
 
 I started off building the terminal system and branched out from there. Since after starting day 1, and losing my partner at the end of the day, I had to start over concept wise and take a greater ownership of the project. I continued on with the terminal, starting with basic pwd, ls, cd, mkdir, and touch. Other commands came about during the development of the game. 
 
+While working on the terminal, I also had an idea for ascii art and how to easily create it. I found a library called ascii magic and found a way on my own to convert image sequences into a list of ascii art strings, and then playback and animate them. It seemed to work very well! In fact the ascii_animation.py file has a main method and is used to convert jpg/png to ascii art itself. It also has methods used to import in other python scripts to play back the ascii art in terminal. Pretty neat!
+
 Marshall was also very helpful in the beginning stages of creating a perpetual file system. After the initial build, I ran with it (with Chat GPTs help) and restructured it to what it is now. Overall it seems to work very well, and able to navigate pieces of it like a graph, with `/` as the root.
 
 This filesystem .json setup allowed me to add a save state later, allowing a player to leave the game completely, and come back and continue the mission where the left off.
