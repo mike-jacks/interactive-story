@@ -14,9 +14,9 @@
 1. Mike Jacks - text_color.py enum class to apply color to terminal text
 1. Mike Jacks - utility.py Utility class to implement common commands like clear screen across scripts.
 
-This was a very fun and challenging project. Part of the challenge was not having a dedicated partner from the getgo due to scheduling conflicts and changing partners. Marshall was great to collaborate ideas with and he helped implement some 3D graphics needed to display security footage as well as built the original structure of the story. 
+This was a very fun and challenging project. Part of the challenge was not having a dedicated partner from the getgo due to scheduling conflicts and changing partners. Marshall was great to collaborate ideas with and he helped implement some 3D graphics needed to display security footage as well as built the original structure of the story.
 
-I started off building the terminal system and branched out from there. Since after starting day 1, and losing my partner at the end of the day, I had to start over concept wise and take a greater ownership of the project. I continued on with the terminal, starting with basic pwd, ls, cd, mkdir, and touch. Other commands came about during the development of the game. 
+I started off building the terminal system and branched out from there. Since after starting day 1, and losing my partner at the end of the day, I had to start over concept wise and take a greater ownership of the project. I continued on with the terminal, starting with basic pwd, ls, cd, mkdir, and touch. Other commands came about during the development of the game.
 
 While working on the terminal, I also had an idea for ascii art and how to easily create it. I found a library called ascii magic and found a way on my own to convert image sequences into a list of ascii art strings, and then playback and animate them. It seemed to work very well! In fact the ascii_animation.py file has a main method and is used to convert jpg/png to ascii art itself. It also has methods used to import in other python scripts to play back the ascii art in terminal. Pretty neat!
 
@@ -24,6 +24,6 @@ Marshall was also very helpful in the beginning stages of creating a perpetual f
 
 This filesystem .json setup allowed me to add a save state later, allowing a player to leave the game completely, and come back and continue the mission where the left off.
 
-Initial challenges were getting the terminal to work, a lot of bugs were needed to be worked on in the begining. As it solidified, bugs became more cosmetic than operational. After the terminal was in good working order, I decided I wanted a messenger terminal to pop up as messages from the hacker (narrator) or enemy companies. This was interesting as Chat GPT lead me down the road to use applescript to launch and close a new window. 
+Initial challenges were getting the terminal to work, a lot of bugs were needed to be worked on in the begining. As it solidified, bugs became more cosmetic than operational. After the terminal was in good working order, I decided I wanted a messenger terminal to pop up as messages from the hacker (narrator) or enemy companies. This was interesting as Chat GPT lead me down the road to use applescript to launch and close a new window.
 
-Needless to say I learned a lot on this project pushing the limits of my skills, and gained confidence in my abilities. 
+Needless to say I learned a lot on this project pushing the limits of my skills, and gained confidence in my abilities.
