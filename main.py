@@ -63,7 +63,9 @@ def access_terminal(user_terminal: Terminal, incoming_message: bool, messages: l
 
 def prompt_to_reload_terminal():
     while True:
-        animate_text_with_sound("Would you like to reload your terminal attempt to complete the mission? (yes/no): ",end_text="", loop_offset=8,thread_stop_freeze=0.1)
+        Utility.hide_cursor()
+        animate_text_with_sound("Would you like to reload your terminal attempt to complete the mission? (yes/no): ",end_text="", loop_offset=6,thread_stop_freeze=0.1)
+        Utility.show_cursor()
         user_input = input("")
         if re.match(r"yes|y", user_input):
             break
@@ -366,6 +368,7 @@ int main() {
             mission_2.enemy_terminal.messenger.enqueue_messages(mission_2.enemy_messages)
             mission_2.enemy_terminal.messenger.display_messages_and_wait(animate=True)
             Utility.clear_screen()
+            sleep(1)
             mission_2.enemy_terminal.messenger.wait_for_window_to_close()
             Utility.hide_cursor()
             sleep(2)
@@ -383,6 +386,7 @@ int main() {
             mission_2.hacker_messenger.enqueue_messages(mission_2.hacker_messages)
             mission_2.hacker_messenger.display_messages_and_wait(animate=True)
             Utility.clear_screen()
+            sleep(1)
             mission_2.hacker_messenger.wait_for_window_to_close()
             mission_2.is_a_failure()
             prompt_to_reload_terminal()
@@ -400,6 +404,7 @@ int main() {
             mission_2.hacker_messenger.enqueue_messages(mission_2.hacker_messages)
             mission_2.hacker_messenger.display_messages_and_wait(animate=True)
             Utility.clear_screen()
+            sleep(1)
             mission_2.hacker_messenger.wait_for_window_to_close()
             mission_2.is_a_failure()
             prompt_to_reload_terminal()
@@ -428,7 +433,7 @@ f"""    Apple Terminal Credentials
     mission_3_failed_already = False
     while not mission_3.is_complete:
         Utility.hide_cursor()
-        if not mission_1_failed_already:
+        if not mission_3_failed_already:
             access_terminal(user_terminal, incoming_message=True, messages=mission_3.hacker_messages)
         else:
             access_terminal(user_terminal, incoming_message=False, messages=mission_3.hacker_messages)
@@ -444,6 +449,7 @@ f"""    Apple Terminal Credentials
             mission_3.enemy_terminal.messenger.enqueue_messages(mission_3.enemy_messages)
             mission_3.enemy_terminal.messenger.display_messages_and_wait(animate=True)
             Utility.clear_screen()
+            sleep(1)
             mission_3.enemy_terminal.messenger.wait_for_window_to_close()
             Utility.hide_cursor()
             sleep(2)
@@ -461,16 +467,30 @@ f"""    Apple Terminal Credentials
             mission_3.hacker_messenger.enqueue_messages(mission_3.hacker_messages)
             mission_3.hacker_messenger.display_messages_and_wait(animate=True)
             Utility.clear_screen()
+            sleep(1)
             mission_3.hacker_messenger.wait_for_window_to_close()
             mission_3.is_a_failure()
             prompt_to_reload_terminal()
             Utility.clear_screen()
     
-    animate_text_with_sound("All missions completed successfully!", loop_offset=2)
-    animate_text_with_sound("You are now a certified hacker!", loop_offset=2)
-    animate_text_with_sound("You have successfully hacked the planet!", loop_offset=2)
-    animate_text_with_sound("Congratulations!", loop_offset=2)
+    # END GAME
+    Utility.hide_cursor()
+    animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
+    animated_text_thread = animated_text(static_text="New message incoming", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=2)
+    animated_text_thread.stop(0.5)
+    Utility.clear_screen()
+    hacker_messenger.enqueue_messages(mission_messages["END"])
+    hacker_messenger.display_messages_and_wait(animate=True)
+    Utility.clear_screen()
+    sleep(1)
+    hacker_messenger.wait_for_window_to_close()
     
+    # animate_text_with_sound("All missions completed successfully!", loop_offset=2)
+    # animate_text_with_sound("You are now a certified hacker!", loop_offset=2)
+    # animate_text_with_sound("You have successfully hacked the planet!", loop_offset=2)
+    # animate_text_with_sound("Congratulations!", loop_offset=2)
+    
+    Utility.hide_cursor()
     animate_text_with_sound("Would you like to reset the game? (yes/no): ", end_text="", loop_offset=2)
     Utility.show_cursor()
     reset_game = input("")

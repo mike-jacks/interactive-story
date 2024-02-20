@@ -7,6 +7,7 @@ from time import sleep, time
 from messenger_terminal import HackerMessenger, CorporationMessenger, MessageTerminal
 from animation import Animation
 from sound import Sound
+import sys
 
 class User:
     def __init__(self, username: str, password: str) -> None:
@@ -805,47 +806,73 @@ class Terminal:
     def terminal_help(self, args=[]):
         print()
         print("Commands:\n")
-        print("pwd - print working directory")
-        print("ls - list directory contents")
-        print("cd - change directory")
-        print("mkdir - make directory")
-        print("touch - create file")
-        print("unzip - unzip file")
-        print("echo - write to file")
-        print("cat - print file contents")
-        print("open - open file")
-        print("rm - remove file")
-        print("rmdir - remove directory")
-        print("ifconfig - get ip address")
-        print("ssh - connect to another terminal")
-        print("download - download file or directory from ssh")
-        print("setpasswd - set password")
-        print("messenger - open hacker messenger window")
-        print("clear - clear the terminal screen")
-        print("help - display this help message")
-        print("resetgame - reset the game")
-        print("exit - exit active terminal")
+        print("pwd - print working directory: pwd")
+        print("ls - list directory contents: ls [-a] [-al]")
+        print("cd - change directory: cd <directory>")
+        print("mkdir - make directory: mkdir <directory>")
+        print("touch - create file: touch <filename>")
+        print("unzip - unzip file: unzip <filename.zip>")
+        print("echo - write to file: echo \"text\" > filename or echo \"text\" >> filename")
+        print("find - search for file or directory: find <filename or directory> [path]")
+        print("cat - print file contents: cat <filename>")
+        print("open - open file: open <filename>")
+        print("rm - remove file: rm <filename>")
+        print("rmdir - remove directory: rmdir <directory>")
+        print("ifconfig - get ip address: ifconfig")
+        print("ssh - connect to another terminal: ssh <ip_address>")
+        print("download - download file or directory from ssh: download <filename or directory>")
+        print("setpasswd - set password: setpasswd <new_password>")
+        print("messenger - open hacker messenger window: messenger")
+        print("clear - clear the terminal screen: clear")
+        print("help - display this help message: help")
+        print("resetgame - reset the game: resetgame")
+        print("exit - exit active terminal: exit")
         print()
 
     def reset_game(self, args=[]):
         while True:
-            confirmation = input("Are you sure you want to reset the game? This will delete all saved data. (y/n): ")
+            Utility.hide_cursor()
+            animated_text = "Are you sure you want to reset the game? This will delete all saved data. (y/n): "
+            create_new_user_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="", delay_between_chars=0.03)
+            Sound.play(Sound.DIGITAL_TYPING, loop=int((len(animated_text)*0.03*10)+7), pause=0.083)
+            create_new_user_text_thread.stop(0.5)
+            Utility.show_cursor()
+            confirmation = input("")
             if confirmation.lower() in ["y", "n", "yes", "no"]:
                 break
             else:
-                print("Invalid choice. Please enter 'y' or 'n'.")
+                Utility.hide_cursor()
+                animated_text = "Invalid choice. Please enter 'y' or 'n'.\n"
+                create_new_user_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="", delay_between_chars=0.03)
+                Sound.play(Sound.DIGITAL_TYPING, loop=int((len(animated_text)*0.03*10)+4), pause=0.083)
+                create_new_user_text_thread.stop(0.5)
+                Utility.show_cursor()
         if confirmation.lower() in ["y", "yes"]:
             try:
                 json_files = glob.glob("./filesystems/*.json")
                 for f in json_files:
                     os.remove(f)
-                print("Game reset successfully. Exiting game.")
+                Utility.hide_cursor()
+                animated_text = "Game reset successfully. Exiting game."
+                create_new_user_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="", delay_between_chars=0.03)
+                Sound.play(Sound.DIGITAL_TYPING, loop=int((len(animated_text)*0.03*10)+2), pause=0.083)
+                create_new_user_text_thread.stop(1.5)
+                Utility.show_cursor()
+                Utility.clear_screen()
+                self.save_filesystem()
+                sys.exit(0)
             except Exception as e:
                 print(f"Error resetting game: {e}")
             finally:
                 self.exit_requested = True
         else:
-            print("Game reset cancelled.")
+            Utility.hide_cursor()
+            animated_text = "Game reset cancelled."
+            create_new_user_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="\n", delay_between_chars=0.03)
+            Sound.play(Sound.DIGITAL_TYPING, loop=int((len(animated_text)*0.03*10)+2), pause=0.083)
+            create_new_user_text_thread.stop(1)
+            Utility.clear_screen()
+            Utility.show_cursor()
     
     def _add_file_to_filesystem(self, path: str, filename: str, content=None):
         """
