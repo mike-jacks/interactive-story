@@ -11,8 +11,28 @@ from sound import Sound
 from animation import Animation
 
 class MessageTerminal(ABC):
+    """
+    Abstract base class for a message terminal. This class provides the framework
+    for a message display system in a terminal window.
+
+    Attributes:
+        window_name (str): The name of the terminal window.
+        message_queue (queue.Queue): Queue for messages to be displayed.
+        process (subprocess.Popen): Process used to execute terminal commands.
+        keep_running (bool): Flag to keep the message processing thread running.
+        messages (list[list[str]]): List of message lists to be displayed.
+        thread (threading.Thread): Thread for processing and displaying messages.
+        terminal_text_color (TextColor): Color used for the text in the terminal.
+    """
      
     def __init__(self, window_name):
+        """
+        Initializes the message terminal with a window name.
+
+        Parameters:
+            window_name (str): The name to be assigned to the terminal window.
+        """
+        
         self.window_name = window_name
         self.message_queue = queue.Queue()
         self.process = None
@@ -24,14 +44,33 @@ class MessageTerminal(ABC):
         
     @abstractmethod
     def message_terminal_text_color(self):
+        """
+        Abstract method to set the terminal text color.
+        Must be implemented by subclasses.
+        """
+        
         pass
     
     def enqueue_messages(self, messages):
+        """
+        Adds a new list of messages to the queue to be displayed.
+
+        Parameters:
+            messages (list[str]): The messages to be added to the queue.
+        """
+        
         self.messages.append([])
         for message in messages:
             self.messages[-1].append(message)
     
     def display_messages_and_wait(self, animate: bool = False):
+        """
+        Displays messages from the last list added to the messages attribute and waits for user input.
+
+        Parameters:
+            animate (bool): If True, messages will be displayed with typing animation.
+        """
+        
         Utility.hide_cursor()
         # Generate a script to display all messages and wait for an input.
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.sh') as script_file:
@@ -64,6 +103,10 @@ class MessageTerminal(ABC):
         Sound.play(Sound.MAC_OS_NOTIFICAITON_1_SOUND)
     
     def process_messages(self):
+        """
+        Constantly processes messages from the queue if available, displaying them in a new terminal window.
+        """
+        
         # Platform-specific command to open a new terminal window
         while self.keep_running:
             if not self.message_queue.empty():
@@ -74,16 +117,36 @@ class MessageTerminal(ABC):
                 sleep(0.1)
         
     def animate_typing(self, message, script_file, speed=0.02):
+        """
+        Simulates typing animation for a message and writes it to a script file.
+
+        Parameters:
+            message (str): The message to animate.
+            script_file (file object): The temporary script file to write commands.
+            speed (float): The speed of the typing animation.
+        """
+        
         for letter in message:
             # Directly use printf for each letter with proper escaping
             escaped_letter = letter.replace("'", "'\\''")  # Escape single quotes correctly
             script_file.write(f"printf '{escaped_letter}'; sleep {speed}; ") 
     
     def stop(self):
+        """
+        Stops the message processing thread and joins it to the main thread.
+        """
+        
         self.keep_running = False
         self.thread.join()
     
     def is_messages_terminal_open(self):
+        """
+        Checks if the terminal window with the specified window name is still open.
+
+        Returns:
+            bool: True if the window is open, False otherwise.
+        """
+        
         # Check if the window with given title is still open.
         script = f'''tell application "Terminal"
                         set windowList to every window whose name contains "{self.window_name}"
@@ -97,7 +160,16 @@ class MessageTerminal(ABC):
         return "true" in result.stdout.strip()
 
     def wait_for_window_to_close(self, timeout=60):
-        """Wait for the Terminal window with the specified title to close."""
+        """
+        Waits for the terminal window to close within a specified timeout.
+
+        Parameters:
+            timeout (int, optional): The timeout duration in seconds.
+
+        Returns:
+            bool: True if the window closed within the timeout, False otherwise.
+        """
+
         timeout = float(timeout)
         start_time = time()
         while time() - start_time < timeout:
@@ -115,15 +187,55 @@ class MessageTerminal(ABC):
         return False
 
 class HackerMessenger(MessageTerminal):
+    """
+    Concrete class representing a hacker's message terminal.
+
+    Inherits from MessageTerminal and implements message_terminal_text_color to return a green text color.
+    """
+    
     def __init__(self, window_name):
+        """
+        Initializes the hacker messenger with a specified window name.
+
+        Parameters:
+            window_name (str): The name to be assigned to the hacker's terminal window.
+        """
+        
         super().__init__(window_name)
     
     def message_terminal_text_color(self):
+        """
+        Overrides MessageTerminal's abstract method to set the terminal text color to green.
+
+        Returns:
+            TextColor: The green text color.
+        """
+        
         return TextColor.GREEN
 
 class CorporationMessenger(MessageTerminal):
+    """
+    Concrete class representing a corporation's message terminal.
+
+    Inherits from MessageTerminal and implements message_terminal_text_color to return a red text color.
+    """
+    
     def __init__(self, window_name):
+        """
+        Initializes the corporation messenger with a specified window name.
+
+        Parameters:
+            window_name (str): The name to be assigned to the corporation's terminal window.
+        """
+        
         super().__init__(window_name)
     
     def message_terminal_text_color(self):
+        """
+        Overrides MessageTerminal's abstract method to set the terminal text color to red.
+
+        Returns:
+            TextColor: The red text color.
+        """
+        
         return TextColor.RED
