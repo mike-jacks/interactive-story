@@ -36,7 +36,7 @@ class MessageTerminal(ABC):
         # Generate a script to display all messages and wait for an input.
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.sh') as script_file:
             script_file.write("#!/bin/zsh\n")
-            script_file.write("printf '\\e[8;24;120t'\n")
+            script_file.write("printf '\\e[8;24;130t'\n")
             script_file.write("clear\n")
             script_file.write(f'echo -n -e "\\033]0;{self.window_name}\\007"\n')
             script_file.write("tput civis\n")

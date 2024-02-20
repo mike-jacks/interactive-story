@@ -432,7 +432,7 @@ f"""    Apple Terminal Credentials
             access_terminal(user_terminal, incoming_message=True, messages=mission_3.hacker_messages)
         else:
             access_terminal(user_terminal, incoming_message=False, messages=mission_3.hacker_messages)
-        if not mission_3.enemy_terminal.find(["security_footage.mp4", "/"]):
+        if not mission_3.enemy_terminal.find(["security_footage2.mp4", "/"]):
             Utility.clear_multi_line("\n")
             mission_3.is_a_success()
             Utility.hide_cursor()
