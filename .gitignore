@@ -4,3 +4,5 @@
 .env/
 __pycache__/
 mike_main_test.py
+art_unused.py
+filesystems/
