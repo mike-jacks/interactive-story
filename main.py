@@ -79,7 +79,7 @@ def main():
     hackers_animation = load_ascii_art_animation_from_json("./animation_images_json/hackers_animation.json")
     #hackers_animation = clean_up_ascii_art_animation(hackers_animation)
     Sound.play(Sound.HACKERS_ANIMATION, loop=1, pause=0.0)
-    hackers_animation_thread = play_ascii_animation(hackers_animation, frames_per_second=33, loop_num_times=0, continue_thread_after_stop_for=0.01)
+    hackers_animation_thread = play_ascii_animation(hackers_animation, frames_per_second=34, loop_num_times=0, continue_thread_after_stop_for=0.01)
     hackers_animation_thread.stop()
     Utility.clear_screen()
     
@@ -165,7 +165,7 @@ def main():
     Password: {gibson_terminal.filesystem["/"]["etc"][".passwd"]}
     ---------------------------
     """)
-        gibson_terminal._add_file_to_filesystem(f"/var/log", "connections.log",
+        gibson_terminal._add_file_to_filesystem(f"/var/log", "garbage.log",
     f"""
     U2FsdGVkX1+IbE5LRVGnTqZy5EJ6i/SnVLwX8QejPbmdF3s0xL5+I7fZb8Bx4E3O
     a2aMgF4D2s6c+FoN/8H1k4e7R+ZQz3/+xxGK6+MVg3VtP3UybG9mD4HwY5BmdpGs
