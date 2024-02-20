@@ -192,7 +192,7 @@ def main():
     apple_messenger = apple_terminal.messenger
     
     #Load mission messages json:
-    with open("./mission_messages.json", "r") as file:
+    with open("./mission_messages/mission_messages.json", "r") as file:
         mission_messages = json.load(file)
     
     
