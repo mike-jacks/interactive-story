@@ -36,20 +36,20 @@ class MessageTerminal(ABC):
         # Generate a script to display all messages and wait for an input.
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.sh') as script_file:
             script_file.write("#!/bin/zsh\n")
-            script_file.write("printf '\\e[8;24;130t'\n")
+            script_file.write("printf '\\e[8;27;150t'\n")
             script_file.write("clear\n")
             script_file.write(f'echo -n -e "\\033]0;{self.window_name}\\007"\n')
             script_file.write("tput civis\n")
             script_file.write("sleep 1\n")
             if animate:
                 for message in self.messages[-1]:
-                    script_file.write(f'echo -n "{self.terminal_text_color.value}{self.window_name}: ";')
+                    script_file.write(f'echo -n "{self.terminal_text_color.value}{self.window_name.capitalize()}: ";')
                     self.animate_typing(message, script_file)
                     script_file.write(f'echo -n "\n";')
                     script_file.write("sleep 1\n")
             else:
                 for message in self.messages[-1]:
-                    script_file.write(f'echo "{self.terminal_text_color.value}{self.window_name}: {message}"\n')
+                    script_file.write(f'echo "{self.terminal_text_color.value}{self.window_name.capitalize()}: {message}"\n')
             # Wait for an input to proceed
             script_file.write('echo "Press enter to continue..."\n')
             script_file.write('read varname\n')

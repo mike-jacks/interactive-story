@@ -1,8 +1,9 @@
 {
   "1": [
     "Finally, you're online! I've heard great things about your skills accessing servers. I need your help.\n",
-    "There's a file hiding in the Gibson's depths. It's labelled 'garbage', but to us, it's gold.\n",
-    "I no longer have write access to their system, but you do. I need you to get in, grab the file, and erase it.\n",
+    "There's a file hiding in on the Gibson server I need. It's labelled 'garbage', but to us, it's gold.\n",
+    "I no longer have write access to their system, but you do.\n",
+    "I need you to get in, download the file to your system, and erase it from Gibson's server.\n",
     "I've dropped what you need to access their system in your 'Downloads' folder.\n",
     "Look in the usual places. Unix systems don't vary much. Find it, take it, erase it.\n",
     "Finish up and log out. I’ll ping you with the next steps once you're back in the real world.\n"
@@ -21,7 +22,7 @@
     "Gibson's top security personnel are now on high alert and tracking your movements.\n",
     "Cease all activities immediately. Legal consequences are imminent.\n",
     "Your attempt to remain anonymous is futile. Expect contact for resolution and restitution.\n",
-    "Gibson Security Division."
+    "Gibson Security Division.\n"
   ],
   "2": [
     "Damn, you actually did it. And what's this?\n",
@@ -53,11 +54,11 @@
     "Alert: Compromised System Integrity.\n",
     "We have detected unauthorized access and alterations to our Microsoft server infrastructure.\n",
     "Your fingerprints are all over the destruction of critical application project files.\n",
-    "The server password has been changed, locking us out of our system. Provide us the new credentials immediately.\n",
+    "The server password has been changed, locking us out of our system. Provide us the new credentials immediately!\n",
     "This sabotage has not gone unnoticed. Microsoft's legal team is preparing a full-scale response.\n",
     "You have directly violated several international laws and breached contractual agreements.\n",
     "Cease your activities. Your anonymity will not protect you.\n",
-    "Microsoft Security Operations."
+    "Microsoft Security Operations.\n"
   ],
   "3": [
     "This is it, the final stretch. Apple's got eyes everywhere, but this time, they saw too much.\n",
@@ -73,15 +74,6 @@
     "Dive back into the shadows. The footage, our comrade's ghost, it still haunts their servers. We need to act, and fast.\n",
     "I'm counting on you, more than ever. This isn't just another task; it's a lifeline. Erase the evidence, protect our inside voice.\n"
   ],
-  "END": [
-    "This is it, the end of the line. You've gone above and beyond, diving into the digital abyss and emerging unscathed.\n",
-    "Our journey was more than just about hacking; it was about revealing truths, about fighting back against the faceless giants.\n",
-    "You've proven not just your skills, but your dedication to our cause. The shadows we've cast will linger long in the corridors of power.\n",
-    "But every story has its end, and this is ours. We've changed the game, left our mark, and now, we fade back into the ether.\n",
-    "Remember, though we part ways, the fight isn't over. The system, the establishment, the silent guardians of the status quo... they remain.\n",
-    "Keep your eyes open, stay vigilant, and never forget: in the digital world, we're all just a keystroke away from the next revolution.\n",
-    "Farewell, my friend. Until our paths cross again in the shadows of the net.\n"
-  ],
   "3_SUCCESS": [
     "Security Breach Alert: Unauthorized Surveillance Access.\n",
     "We're contacting you directly regarding the unauthorized deletion of specific security footage from Apple's archives.\n",
@@ -90,6 +82,15 @@
     "Apple takes these violations seriously. Our cybersecurity team is dissecting the breach, with legal actions to follow.\n",
     "Discontinuation of your illegal activities is advised. Your attempts at anonymity will be unmasked.\n",
     "Direct engagement from our legal department is forthcoming. Prepare for repercussions.\n",
-    "Apple Corporate Security."
-]
+    "Apple Corporate Security.\n"
+],
+  "END": [
+    "This is it, the end of the line. You've gone above and beyond, diving into the digital abyss and emerging unscathed.\n",
+    "Our journey was more than just about hacking; it was about revealing truths, about fighting back against the faceless giants.\n",
+    "You've proven not just your skills, but your dedication to our cause. The shadows we've cast will linger long in the corridors of power.\n",
+    "But every story has its end, and this is ours. We've changed the game, left our mark, and now, we fade back into the ether.\n",
+    "Remember, though we part ways, the fight isn't over. The system, the establishment, the silent guardians of the status quo... they remain.\n",
+    "Keep your eyes open, stay vigilant, and never forget: in the digital world, we're all just a keystroke away from the next revolution.\n",
+    "Farewell, my friend. Until our paths cross again in the shadows of the net.\n"
+  ]
 }
