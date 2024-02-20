@@ -10,24 +10,98 @@ from sound import Sound
 import sys
 
 class User:
+    """
+    Represents a user in the terminal-based hacking simulation game.
+
+    Attributes:
+        username (str): Username of the user.
+        password (str): Password of the user.
+    """
+    
     def __init__(self, username: str, password: str) -> None:
+        """
+        Initializes a new instance of the User class.
+
+        Parameters:
+            username (str): Username of the user.
+            password (str): Password of the user.
+        """
+        
         self.username = username
         self.password = password
     
     def __repr__(self) -> str:
+        """
+        Returns a string representation of the User instance.
+
+        Returns:
+            str: String representation of the user.
+        """
+        
         return f"User: {self.username})"
     
     def __eq__(self, other: object) -> bool:
+        """
+        Checks if another object is equal to this User instance.
+
+        Parameters:
+            other (object): The object to compare with this User instance.
+
+        Returns:
+            bool: True if the other object is a User and has the same username and password.
+        """
+        
         return isinstance(other, User) and self.username == other.username and self.password == other.password
 
 class Terminal:
+    """
+    Represents a terminal in the terminal-based hacking simulation game.
+
+    Attributes:\n
+        terminals (list): Class attribute, list of all Terminal instances.\n
+        messengers (list): Class attribute, list of all MessageTerminal instances.\n
+        hacker_messages (list): Class attribute, list of all hacker messages.\n
+        terminal_name (str): Name of the terminal.\n
+        terminal_ip_address (str): IP address of the terminal.\n
+        valid_users (list): List of valid User instances for the terminal.\n
+        active_user (User): Currently active user on the terminal.\n
+        messenger (MessageTerminal): Associated messenger instance for the terminal.\n
+        messenger_messages (list): List of messages for the messenger.\n
+        in_ssh_session (bool): Indicates if the terminal is currently in an SSH session.\n
+        is_user_terminal (bool): Indicates if the terminal is the user's terminal.\n
+        exit_requested (bool): Indicates if exit from the terminal has been requested.\n
+        commands (dict): Dictionary of terminal commands mapped to their corresponding methods.\n
+    """
+    
     terminals: list['Terminal'] = []
     messengers: list[MessageTerminal] = [HackerMessenger("Hacker")]
     hacker_messages: list[list[str]] = [[]]
 
     def __init__(self, terminal_name: str, terminal_ip_address: str, terminal_username = None, terminal_password = None, is_user_terminal = False) -> None:
+        """
+        Initializes a new instance of the Terminal class. This includes setting up the terminal's basic attributes,\n 
+        checking for an existing filesystem, and attempting to log in with provided credentials if they exist.\n
+        If no filesystem exists, it either prompts for user creation or uses provided credentials to create a new user and filesystem.\n
+
+        Parameters:\n
+            terminal_name (str): Name of the terminal, used to identify it and potentially as part of filesystem paths.\n
+            terminal_ip_address (str): IP address associated with the terminal, used for network operations like SSH.\n
+            terminal_username (str, optional): Username to attempt login with, if both username and password are provided.\n
+            terminal_password (str, optional): Password to attempt login with; used together with terminal_username.\n
+            is_user_terminal (bool, optional): Flag indicating whether this terminal instance is considered the primary user's terminal.\n
+
+        Side Effects:\n
+            - Initializes internal attributes for managing terminal state, user sessions, and messaging.\n
+            - Loads or initializes the filesystem associated with the terminal.\n
+            - Attempts to log in a user if credentials are provided.\n
+            - Adds the terminal instance to the global list of terminals.\n
+            - Initializes a messenger associated with the terminal for communication.\n
+        """
+    
         self.terminal_name = terminal_name
         self.terminal_ip_address = terminal_ip_address
+        self.terminal_username = terminal_username
+        self.terminal_password = terminal_password
         self.filesystem_filename = f"./filesystems/{terminal_name}_filesystem.json"
         self.filesystem_exists = os.path.exists(self.filesystem_filename)
         self.valid_users: list[User] = []
@@ -37,6 +111,9 @@ class Terminal:
         self.in_ssh_session = False
         self.is_user_terminal = is_user_terminal
         Terminal.messengers.append(self.messenger)
+        self.exit_requested = False
+        self.commands = self.get_commands()
+        Terminal.terminals.append(self)
         
         if self.filesystem_exists:
             self.filesystem = self.load_filesystem()
@@ -52,14 +129,15 @@ class Terminal:
             else:
                 # No filesystem exists, prompt to create a new user
                 self.prompt_for_create_user()
-        # self.messeges = [[str]]
-        # self.new_message = False
-        Terminal.terminals.append(self)
-        self.exit_requested = False
-        self.commands = self.get_commands()
+        
+        
     
     def ensure_password_file_exists(self):
-        # Ensure the "etc" directory exists
+        """
+        Ensures that the password file exists within the filesystem.\n
+        If the 'etc' directory or '.passwd' file doesn't exist, they are created with default settings.
+        """
+
         if "etc" not in self.filesystem["/"]:
             self.filesystem["/"]["etc"] = {}
         
@@ -70,6 +148,11 @@ class Terminal:
     
     
     def get_commands(self):
+        """
+        Returns a dictionary mapping command names to their corresponding method calls.\n
+        This method centralizes the terminal's available commands for easy reference and execution.
+        """
+        
         return {
             "pwd": self.pwd,
             "ls": self.ls,
@@ -95,6 +178,13 @@ class Terminal:
         }
     
     def messenger_window(self, args=[]):
+        """
+        Opens and displays the messenger window using the last message in the hacker_messages list.\n
+        This simulates a chat interface within the terminal environment.
+
+        Args:
+            args (list): Additional arguments passed to the method, not used in this implementation.
+        """
         # display hacker messenger window with the last item in the messages list
         if self.hacker_messages:
             login_text_thread = Animation.animated_text(static_text="Launching messenger service", animated_text="...", end_text="\n", delay_between_chars=0.3, continue_thread_after_stop_for=2)
@@ -107,6 +197,11 @@ class Terminal:
             hacker_terminal.wait_for_window_to_close()
     
     def prompt_for_login(self):
+        """
+        Prompts the user to log in by entering their username and password.\n
+        Validates the input credentials and updates the terminal state accordingly.
+        """
+    
         Utility.hide_cursor()
         animated_text = "Please log in."
         login_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="\n", delay_between_chars=0.03)
@@ -118,6 +213,10 @@ class Terminal:
         self.login_user(username, password)
         
     def prompt_for_create_user(self):
+        """
+        Prompts the user to create a new user account by providing a username and password.\n
+        This method is called when no existing filesystem is found, and a new user needs to be created.
+        """
         Utility.hide_cursor()
         animated_text = "You need to create a new user before being able to login."
         create_new_user_text_thread = Animation.animated_text(static_text="", animated_text=animated_text, end_text="\n", delay_between_chars=0.03)
@@ -130,9 +229,20 @@ class Terminal:
         Utility.clear_screen()
     
     def add_user(self, username: str, password: str) -> None:
+        """
+        Adds a new user with the specified username and password to the terminal's list of valid users.
+
+        Args:
+            username (str): The username of the new user.
+            password (str): The password of the new user.
+        """
         self.valid_users.append(User(username, password))
     
     def load_filesystem(self):
+        """
+        Loads the terminal's filesystem from a JSON file.\n
+        If the file is not found, a new filesystem is created with default structure.
+        """
         try:
             with open(self.filesystem_filename) as file:
                 return json.load(file)
@@ -140,6 +250,12 @@ class Terminal:
             return self.create_new_filesystem() # Create a new filesystem and immediately use it if one does not exist
     
     def save_filesystem(self, filesystem=None):
+        """
+        Saves the current state of the filesystem to a JSON file.
+
+        Args:
+            filesystem (dict, optional): The filesystem structure to be saved. If not provided, the terminal's current filesystem is used.
+        """
         filesystem = filesystem or self.filesystem
         
         # Check if the filesystems directory exists, create it if not
@@ -149,6 +265,11 @@ class Terminal:
             json.dump(filesystem, file, indent=4)
             
     def create_new_filesystem(self):
+        """
+        Creates a new default filesystem structure for the terminal.\n
+        This structure includes various system directories like 'home', 'etc', and 'bin'.
+        """
+        
         base_structure = {
             "/": {
                 "home": {},
@@ -188,6 +309,11 @@ class Terminal:
         return base_structure
     
     def load_valid_users(self):
+        """
+        Loads valid users from the filesystem's 'etc' directory.\n
+        Each user's home directory is checked to construct the list of valid users.
+        """
+        
         valid_users = []
         home_dirs = self.filesystem.get("/", {}).get("home", {})
         for username, _ in home_dirs.items():
@@ -198,6 +324,16 @@ class Terminal:
         return valid_users
     
     def get_file_content(self, file_path):
+        """
+        Retrieves the content of a file from the filesystem given its path.
+
+        Args:
+            file_path (str): The path to the file within the filesystem.
+
+        Returns:
+            The content of the file or None if the file does not exist.
+        """
+    
         parts = file_path.strip("/").split("/")
         node = self.filesystem["/"]
         for part in parts:
@@ -208,6 +344,18 @@ class Terminal:
         return node
 
     def login_user(self, username, password):
+        """
+        Attempts to log in a user with the given username and password.\n
+        Updates the terminal state if login is successful.
+
+        Args:
+            username (str): The username of the user attempting to log in.
+            password (str): The password of the user attempting to log in.
+
+        Returns:
+            A boolean indicating whether the login was successful.
+        """
+    
         user_found = False
         for user in self.valid_users:
             if user.username == username and user.password == password:
@@ -234,6 +382,17 @@ class Terminal:
         return user_found
     
     def create_user(self, username, password):
+        """
+        Creates a new user with the given username and password.\n
+        Initializes a new home directory and updates the filesystem accordingly.
+
+        Args:
+            username (str): The username for the new user.
+            password (str): The password for the new user.
+
+        Returns:
+            A boolean indicating whether the user was successfully created.
+        """
         if any(user.username == username for user in self.valid_users):
             print(f"User '{username}' already exists. Please login.")
             return False
@@ -263,6 +422,14 @@ class Terminal:
         return True
     
     def create_user_home_directory(self, username):
+        """
+        Creates a home directory structure for a new user with the specified username.
+        Adds standard directories like 'Desktop', 'Documents', etc.
+
+        Args:
+            username (str): The username of the user for whom to create the home directory.
+        """
+        
         # Ensure the "home" directory exists
         if "home" not in self.filesystem["/"]:
             self.filesystem["/"]["home"] = {}
@@ -274,6 +441,14 @@ class Terminal:
         self.save_filesystem()
 
     def execute(self, command):
+        """
+        Executes a command entered by the user. The command is parsed and matched against
+        known commands stored in the terminal instance.
+
+        Args:
+            command (str): The command string entered by the user.
+        """
+    
         trimmed_command = command.strip()
         if not trimmed_command:
             return
@@ -288,6 +463,12 @@ class Terminal:
             print(f"Error executing command: {e}")
 
     def pwd(self, args=[]):
+        """
+        Prints the current working directory of the terminal.
+
+        Args:
+            args (list): Additional arguments passed to the method, not used in pwd.
+        """
         if not self.active_user:
             print("Error: No active session. Please log in.")
             return
@@ -297,6 +478,12 @@ class Terminal:
         print(self.current_path)
 
     def ls(self, args=[]):
+        """
+        Lists the contents of the current or specified directory.
+
+        Args:
+            args (list):    Optional arguments that can modify the behavior of 'ls', such as '-a' to include hidden files.
+        """
         show_all = '-a' in args or '-al' in args # Check if '-a' or '-al' flag is present in command arguments
         
         # Start from the root of the filesystem
@@ -329,6 +516,12 @@ class Terminal:
         print("\n") # Print a newline after listing the contents
     
     def navigate_to(self, new_path):
+        """
+        Changes the current directory to the specified path.
+
+        Args:
+            new_path (str): The path to navigate to.
+        """
         # Normalize the new path for absolute paths or construct one for relative paths
         if not new_path.startswith("/"):
             # For relative paths, append the new path to the current_path
@@ -358,6 +551,12 @@ class Terminal:
         self.current_path = temp_path
     
     def cd(self, args):
+        """
+        Changes the current working directory to the one specified in args.
+
+        Args:
+            args (list): A list containing the new directory path as its first element.
+        """
         if not args:
             print("No directory specified")
             return
@@ -375,6 +574,12 @@ class Terminal:
             self.navigate_to(new_path)
 
     def mkdir(self, args):
+        """
+        Creates a new directory at the specified path.
+
+        Args:
+            args (list): A list containing the name of the new directory.
+        """
         if not args:
             print("No directory name specified")
             return
@@ -396,6 +601,12 @@ class Terminal:
         self.save_filesystem()
     
     def touch(self, args):
+        """
+        Creates a new file at the specified path, or updates the timestamp of an existing file.
+
+        Args:
+            args (list): A list containing the path of the file to touch.
+        """
         if not args:
             print("No file name specified")
             return
@@ -433,6 +644,12 @@ class Terminal:
         self.save_filesystem()
     
     def cat(self, args):
+        """
+        Displays the content of a file to the terminal.
+
+        Args:
+            args (list): A list containing the path of the file to display.
+        """
         if not args:
             print("Usage: cat <filename or path>")
             return
@@ -474,6 +691,12 @@ class Terminal:
             print(f"File '{file_name}' not found.")
     
     def open_file(self, args):
+        """
+        Opens and displays the content of a specified file or executes it if it's an executable script or program.
+
+        Args:
+            args (list): A list containing the path of the file to open.
+        """
         if not args:
             print("No file name specified")
             return
@@ -516,6 +739,13 @@ class Terminal:
             print(f"File '{file_name}' not found.")
     
     def rm(self, args):
+        """
+        Removes a file or directory from the filesystem.
+
+        Args:
+            args (list): A list containing the path of the file or directory to remove.
+                        Can include flags such as '-r' for recursive deletion.
+        """
         if not args:
             print("No file name specified")
             return
@@ -556,6 +786,14 @@ class Terminal:
             
             
     def rmdir(self, args):
+        """
+        Removes a directory from the filesystem.
+
+        Args:
+            args (list): A list containing the path of the directory to remove,
+                              optionally preceded by '-r' to indicate recursive deletion.
+        """
+        
         if not args:
             print("No directory name specified")
             return
@@ -594,6 +832,12 @@ class Terminal:
         self.save_filesystem()
     
     def ssh(self, args):
+        """
+        Initiates an SSH session to another terminal using the provided IP address.
+
+        Args:
+            args (list): A list containing the IP address of the target terminal.
+        """
         Utility.hide_cursor()
         if not args:
             print("No ip address specified")
@@ -658,7 +902,15 @@ class Terminal:
                 return
     
     def _get_node_by_path(self, path):
+        """
+        Retrieves the node (directory or file) in the filesystem corresponding to the given path.
 
+        Args:
+            path (str): The filesystem path to the node.
+
+        Returns:
+            The filesystem node corresponding to the path or None if the path does not exist.
+        """
         node = self.filesystem["/"]
         parts = path.strip('/').split('/')
         for part in parts:
@@ -670,6 +922,12 @@ class Terminal:
 
         
     def download(self, args=[]):
+        """
+        Downloads a file or directory from a remote terminal when in an SSH session.
+
+        Args:
+            args (list): A list containing the path of the file or directory to download.
+        """
         # Check if currently SSH'd into another terminal
         if not self.in_ssh_session:  # Assuming 'ssh_active' is a boolean indicating SSH session
             print("Download command can only be used when SSH'd into another terminal.")
@@ -687,6 +945,12 @@ class Terminal:
 
     
     def _start_download(self, target_path):
+        """
+        Starts the download process for a given file or directory from the current remote session.
+
+        Args:
+            target_path (str): The path of the file or directory to download.
+        """
         # Normalize path and find file or directory in the remote filesystem
         if not target_path.startswith("/"):
             # Relative path: combine with current_path
@@ -717,6 +981,13 @@ class Terminal:
 
     
     def _zip_and_download_directory(self, directory_name, directory):
+        """
+        Zips and downloads a directory from the remote terminal to the local user's 'Downloads' directory.
+
+        Args:
+            directory_name (str): The name of the directory to download.
+            directory (dict): The directory structure to download.
+        """
         user_terminal = next((t for t in Terminal.terminals if t.is_user_terminal), None)
         user_terminal_username = user_terminal.valid_users[0].username
         if user_terminal:
@@ -735,6 +1006,13 @@ class Terminal:
             
     
     def _download_file(self, file_name, content):
+        """
+        Downloads a file from the remote terminal to the local user's 'Downloads' directory.
+
+        Args:
+            file_name (str): The name of the file to download.
+            content (str): The content of the file.
+        """
         user_terminal = next((t for t in Terminal.terminals if t.is_user_terminal), None)
         user_terminal_username = user_terminal.valid_users[0].username
         if user_terminal:
@@ -743,6 +1021,12 @@ class Terminal:
             user_terminal.save_filesystem()
     
     def unzip(self, args=[]):
+        """
+        Unzips a .zip file and extracts its contents into the current directory.
+
+        Args:
+            args (list): A list containing the name of the .zip file to unzip.
+        """
         if not args:
             print("Usage: unzip <file_name.zip>")
             return
@@ -791,6 +1075,12 @@ class Terminal:
 
     
     def set_password(self, args):
+        """
+        Updates the password for the terminal or the current user session.
+
+        Args:
+            args (list): A list containing the new password.
+        """
         if not args:
             print("No password specified")
             return
@@ -801,9 +1091,21 @@ class Terminal:
         self.save_filesystem()
     
     def ifconfig(self, args=[]):
+        """
+        Displays the IP configuration for the terminal.
+
+        Args:
+            args (list): Additional arguments passed to the method, not used in this implementation.
+        """
         print(f"IP Address: {self.terminal_ip_address}")
     
     def terminal_help(self, args=[]):
+        """
+        Displays help information for available terminal commands.
+
+        Args:
+            args (list): Additional arguments passed to the method, not used in this implementation.
+        """
         print()
         print("Commands:\n")
         print("pwd - print working directory: pwd")
@@ -830,6 +1132,12 @@ class Terminal:
         print()
 
     def reset_game(self, args=[]):
+        """
+        Resets the game by deleting all saved data and exiting the terminal.
+
+        Args:
+            args (list): Additional arguments passed to the method, not used in this implementation.
+        """
         while True:
             Utility.hide_cursor()
             animated_text = "Are you sure you want to reset the game? This will delete all saved data. (y/n): "
@@ -875,12 +1183,12 @@ class Terminal:
     
     def _add_file_to_filesystem(self, path: str, filename: str, content=None):
         """
-        Adds a file to the specified path in the filesystem. If the path does not exist, it is created.
-        
+        Adds or updates a file at the specified path in the filesystem with the provided content.
+
         Args:
-        - path (str): The path to add the file to, relative to the root of the filesystem.
-        - filename (str): The name of the file to add.
-        - content (str, optional): The content of the file. Defaults to None.
+            path (str): The filesystem path where the file will be added.
+            filename (str): The name of the file to add or update.
+            content (str, optional): The content to be written to the file. Defaults to None.
         """
         # Ensure the path starts with a slash for consistency
         if not path.startswith("/"):
@@ -911,6 +1219,12 @@ class Terminal:
         self.save_filesystem()
     
     def echo(self, args):
+        """
+        Writes text to a file, overwriting it if it exists or creating a new file if it does not.
+
+        Args:
+            args (list): A list containing the text to write and the file path, separated by '>'.
+        """
         if not args or ">" not in args and ">>" not in args:
             print("Usage: echo \"text\" > filename or echo \"text\" >> filename")
             return
@@ -968,6 +1282,13 @@ class Terminal:
         self.save_filesystem()
     
     def find(self, args=[]):
+        """
+        Searches for files or directories within the filesystem that match the provided search term.
+
+        Args:
+            args (list): A list containing the search term and, optionally, a path to limit the search.
+        """
+    
         # Check if there are no arguments or the first argument is only '-a' or '-al' without a filename
         if not args or (args[0] == '-a' and len(args) == 1) or (args[0] == '-al' and len(args) == 1):
             print("Usage: find [-a] <filename> [path]")
@@ -1033,7 +1354,15 @@ class Terminal:
                         
                         
     def _append_to_file(self, path, filename, content):
-        """Appends content to a file, creating the file if it doesn't exist."""
+        """
+        Appends content to the specified file, creating the file if it does not exist.
+
+        Args:
+            path (str): The path where the file is located.
+            filename (str): The name of the file to append content to.
+            content (str): The content to append to the file.
+        """
+
         # Ensure path consistency and load or create the filesystem
         full_path = os.path.join(path, filename).strip("/")
         parts = full_path.split("/")
@@ -1055,9 +1384,21 @@ class Terminal:
         self.save_filesystem()
 
     def clear_screen(self, args=[]):
+        """
+        Clears the terminal screen of all content.
+
+        Args:
+            args (list): Additional arguments passed to the method, not used in this implementation.
+        """
         Utility.clear_screen()
     
     def exit(self, args=[]):
+        """
+        Exits the terminal session and saves any changes made to the filesystem.
+
+        Args:
+            args (list): Additional arguments passed to the method, not used in this implementation.
+        """
         self._animate_typing_text_with_sound("Exiting terminal", end_text="", delay_between_chars=0.03, loop_offset=1)
         text_animation_thread = Animation.animated_text(static_text="Exiting terminal", animated_text="...", end_text="\n", delay_between_chars=0.1, continue_thread_after_stop_for=1)
         text_animation_thread.stop(0.01)
@@ -1066,12 +1407,28 @@ class Terminal:
         self.exit_requested = True
     
     def _animate_typing_text_with_sound(self, text, end_text = "\n", delay_between_chars=0.03, loop_offset = 0):
+        """
+        Simulates typing text on the terminal with accompanying sound effects.
+
+        Args:
+            text (str): The text to animate.
+            end_text (str, optional): Text to append after the animation ends. Defaults to newline.
+            delay_between_chars (float, optional): The delay between each character's appearance.
+            loop_offset (int, optional): Additional loops of typing sound after the text is completed.
+        """
         Utility.hide_cursor()
         animated_text_thread = Animation.animated_text(static_text="", animated_text=text, end_text=end_text, delay_between_chars=delay_between_chars, continue_thread_after_stop_for=0)
         Sound.play(Sound.DIGITAL_TYPING, loop=int((len(text)*0.03*10) + loop_offset), pause=0.083)
         animated_text_thread.stop(0.0)
     
     def update_mission_state(self, mission_id, completed: bool):
+        """
+        Updates the state of a mission to reflect whether it has been completed.
+
+        Args:
+            mission_id (str): The identifier of the mission.
+            completed (bool): The completion state of the mission.
+        """
         # Special directory name that is hidden from the user
         hidden_dir = ".game_states"
         if hidden_dir not in self.filesystem["/"]:
@@ -1082,16 +1439,18 @@ class Terminal:
         self.save_filesystem()
     
     def is_mission_completed(self, mission_id):
+        """
+        Checks if a mission with the given identifier has been completed.
+
+        Args:
+            mission_id (str): The identifier of the mission.
+
+        Returns:
+            A boolean indicating whether the mission is completed.
+        """
         # Special directory name that is hidden from the user
         hidden_dir = ".game_states"
         if hidden_dir in self.filesystem["/"]:
             return self.filesystem["/"][hidden_dir].get(mission_id, False)
         return False
         
-
-
-def main():
-    pass
-
-if __name__ == "__main__":
-    main()
