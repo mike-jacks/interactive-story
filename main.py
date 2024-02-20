@@ -12,11 +12,36 @@ from text_color import TextColor
 animated_text = Animation.animated_text
 
 def animate_text_with_sound(text_to_animate: str, static_text: str = "", end_text: str = "\n", sound_file: str = Sound.DIGITAL_TYPING, pause=0.083, delay_between_chars: float = 0.03, stop_event = None, continue_thread_after_stop_for = 0.000, loop_offset = 0, thread_stop_freeze = 0.5):
+    """
+    Animates text with accompanying sound.
+
+    Parameters:
+        text_to_animate (str): The text to be animated.
+        static_text (str): Static text displayed before the animated text.
+        end_text (str): Text displayed at the end of the animation.
+        sound_file (str): The sound file to play during the animation.
+        pause (float): The pause duration between sound loops.
+        delay_between_chars (float): Delay between each character animation.
+        stop_event (threading.Event): Event to stop the animation thread.
+        continue_thread_after_stop_for (float): Time to continue the thread after a stop event is set.
+        loop_offset (int): Offset to adjust sound looping to match text length.
+        thread_stop_freeze (float): Time to freeze the thread after stopping the animation.
+    """
+    
     animated_text_thread = animated_text(static_text=static_text, animated_text=text_to_animate, end_text=end_text, delay_between_chars=delay_between_chars, stop_event = stop_event, continue_thread_after_stop_for=continue_thread_after_stop_for)
     Sound.play(sound_file, loop=int((len(text_to_animate)*(delay_between_chars * 10)) + loop_offset), pause=pause)
     animated_text_thread.stop(thread_stop_freeze)
     
 def update_messenger_and_display(messenger, msg_lst, animate: bool = False):
+    """
+    Updates messenger with new messages and displays them.
+
+    Parameters:
+        messenger: The messenger instance to update.
+        msg_lst (list): List of new messages to add to the messenger.
+        animate (bool): Whether to animate the message display.
+    """
+    
     messenger.enqueue_messages(msg_lst)
     if msg_lst not in messenger.messages:
         messenger.messages.append(msg_lst)
@@ -25,6 +50,15 @@ def update_messenger_and_display(messenger, msg_lst, animate: bool = False):
     messenger.wait_for_window_to_close()
     
 def access_terminal(user_terminal: Terminal, incoming_message: bool, messages: list = []):
+    """
+    Simulates user access to a terminal interface.
+
+    Parameters:
+        user_terminal (Terminal): The user's terminal instance.
+        incoming_message (bool): Indicates if there is an incoming message.
+        messages (list): List of incoming messages, if any.
+    """
+    
     user_terminal.hacker_messages.append(messages)
     Utility.hide_cursor()
     if not user_terminal.active_user:
@@ -62,6 +96,10 @@ def access_terminal(user_terminal: Terminal, incoming_message: bool, messages: l
     sleep(1)
 
 def prompt_to_reload_terminal():
+    """
+    Prompts the user to reload the terminal or exit the game.
+    """
+    
     while True:
         Utility.hide_cursor()
         animate_text_with_sound("Would you like to reload your terminal attempt to complete the mission? (yes/no): ",end_text="", loop_offset=6,thread_stop_freeze=0.1)
@@ -75,6 +113,10 @@ def prompt_to_reload_terminal():
             animate_text_with_sound("Invalid input. Please enter 'yes|y' or 'no|n'.", end_text="\n", loop_offset=1,thread_stop_freeze=0.1)
 
 def main():
+    """
+    Main function to run the terminal-based hacking simulation game.
+    """
+    
     Utility.clear_screen()
     Utility.hide_cursor()
     # Test animation
