@@ -428,7 +428,7 @@ f"""    Apple Terminal Credentials
     mission_3_failed_already = False
     while not mission_3.is_complete:
         Utility.hide_cursor()
-        if not mission_1_failed_already:
+        if not mission_3_failed_already:
             access_terminal(user_terminal, incoming_message=True, messages=mission_3.hacker_messages)
         else:
             access_terminal(user_terminal, incoming_message=False, messages=mission_3.hacker_messages)
@@ -465,6 +465,7 @@ f"""    Apple Terminal Credentials
             mission_3.is_a_failure()
             prompt_to_reload_terminal()
             Utility.clear_screen()
+    
     
     animate_text_with_sound("All missions completed successfully!", loop_offset=2)
     animate_text_with_sound("You are now a certified hacker!", loop_offset=2)
