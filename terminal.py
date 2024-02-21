@@ -1000,7 +1000,7 @@ class Terminal:
                 counter += 1
             
             # Simulate zipping by copying the directory under a new '.zip' name
-            user_terminal.filesystem["/"]["home"][user_terminal_username]["Downloads"][zip_name] = directory
+            user_terminal.filesystem["/"]["home"][user_terminal_username]["Downloads"][zip_name] = directory.copy()
             print(f"Directory '{directory_name}' has been downloaded and zipped as '{zip_name}'.")
             user_terminal.save_filesystem()
             
@@ -1065,7 +1065,7 @@ class Terminal:
         # 'Unzipping': Check if the zip file contains directory structure
         if isinstance(dir_node[zip_name], dict):
             # Create a new directory next to the zip file with the same contents
-            dir_node[new_dir_name] = dir_node[zip_name]# Make a copy of the directory content
+            dir_node[new_dir_name] = dir_node[zip_name].copy() # Make a copy of the directory content
             print(f"'{zip_name}' has been unzipped to '{new_dir_name}' in directory '{dir_path}'.")
         else:
             dir_node[new_dir_name] = {}  # Make an empty directory
