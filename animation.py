@@ -2,6 +2,7 @@ from time import sleep
 from utility import Utility, ThreadControl
 from text_color import TextColor
 from random import choice
+import sys
 class Animation:
     """
     This class provides methods to create text animations in the console.
@@ -48,7 +49,9 @@ class Animation:
                             rainbow_index = 0
                 else:
                     static_text_with_color = f"{static_text_color.value}{static_text}{TextColor.RESET.value}"
-                print(f"{static_text_with_color}", end="")
+                sys.stdout.write(static_text_with_color)
+                sys.stdout.flush()
+                #print(f"{static_text_with_color}", end="")
                 sleep(delay_between_chars)
                 animated_text_with_color = ""
                 rainbow_index = rainbow_index if static_text_color == TextColor.RAINBOW else 0
@@ -59,12 +62,16 @@ class Animation:
                         if rainbow_index == len(TextColor.RAINBOW.value):
                             rainbow_index = 0
                         Utility.clear_line()
-                        print(static_text_with_color + animated_text_with_color, end="")
+                        sys.stdout.write(static_text_with_color + animated_text_with_color)
+                        sys.stdout.flush()
+                        #print(static_text_with_color + animated_text_with_color, end="")
                         sleep(delay_between_chars)
                     else:
                         animated_text_with_color += f"{animated_text_color.value}{animated_text[i]}{TextColor.RESET.value}"
                         Utility.clear_line()
-                        print(f"{static_text_with_color}{animated_text_with_color}", end="")
+                        sys.stdout.write(static_text_with_color + animated_text_with_color)
+                        sys.stdout.flush()
+                        #print(f"{static_text_with_color}{animated_text_with_color}", end="")
                         sleep(delay_between_chars)
             if end_text_color == TextColor.RAINBOW:
                 if animated_text_color == TextColor.RAINBOW:
@@ -81,7 +88,9 @@ class Animation:
                         rainbow_index = 0
             else:
                 end_text_with_color = f"{end_text_color.value}{end_text}{TextColor.RESET.value}"
-            print("", end=end_text_with_color)
+            sys.stdout.write(end_text_with_color)
+            sys.stdout.flush()
+            #print("", end=end_text_with_color)
         animation_thread = ThreadControl(animated_text_thread, stop_event)
         animation_thread.start()
         sleep(continue_thread_after_stop_for)
