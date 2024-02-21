@@ -117,7 +117,7 @@ def main():
     """
     Main function to run the terminal-based hacking simulation game.
     """
-    """
+    
     Utility.clear_screen()
     Utility.hide_cursor()
     # Test animation
@@ -178,7 +178,7 @@ def main():
     sleep(1.5)
     Utility.clear_screen()
     
-    """
+    
     Utility.hide_cursor()
     # Initialize Terminals
     user_terminal = Terminal(terminal_name="localhost", terminal_ip_address="127.0.0.1", is_user_terminal=True)
