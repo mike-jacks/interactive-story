@@ -1065,7 +1065,7 @@ class Terminal:
         # 'Unzipping': Check if the zip file contains directory structure
         if isinstance(dir_node[zip_name], dict):
             # Create a new directory next to the zip file with the same contents
-            dir_node[new_dir_name] = dir_node[zip_name].copy()  # Make a copy of the directory content
+            dir_node[new_dir_name] = dir_node[zip_name]# Make a copy of the directory content
             print(f"'{zip_name}' has been unzipped to '{new_dir_name}' in directory '{dir_path}'.")
         else:
             dir_node[new_dir_name] = {}  # Make an empty directory
