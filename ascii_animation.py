@@ -115,17 +115,17 @@ def play_ascii_animation(ascii_art_animation: list[str], frames_per_second: int,
                 while True:
                     if stop_event and stop_event.is_set():
                         break
-                        for frame in ascii_art_animation:
-                            sys.stdout.write(frame)
-                            sys.stdout.flush()
-                            time.sleep(1/frames_per_second)
-                            Utility.clear_multi_line(frame)
-                        sys.stdout.write(ascii_art_animation[-1])
+                    for frame in ascii_art_animation:
+                        sys.stdout.write(frame)
                         sys.stdout.flush()
+                        time.sleep(1/frames_per_second)
+                        Utility.clear_multi_line(frame)
+                    sys.stdout.write(ascii_art_animation[-1])
+                    sys.stdout.flush()
             ascii_animation_thread = ThreadControl(play_ascii_animation_thread, stop_event)
             ascii_animation_thread.start()
             time.sleep(continue_thread_after_stop_for)
-        return ascii_animation_thread
+            return ascii_animation_thread
     return ThreadControl(None, None)
 
 if __name__ == "__main__":

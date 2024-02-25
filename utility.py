@@ -9,6 +9,17 @@ class Utility:
     A utility class providing static methods for common system tasks such as clearing the screen, managing cursor visibility, and getting current time and date.
     """
     @staticmethod
+    def set_terminal_window_size(width: int, height: int):
+        """
+        Sets the terminal window size.
+
+        Args:
+            width (int): The desired width of the terminal window.
+            height (int): The desired height of the terminal window.
+        """
+        os.system(f"printf '\e[8;{height};{width}t'")
+    
+    @staticmethod
     def get_current_time():
         """
         Gets the current system time.

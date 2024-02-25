@@ -117,7 +117,7 @@ def main():
     """
     Main function to run the terminal-based hacking simulation game.
     """
-
+    Utility.set_terminal_window_size(150, 40)
     Utility.clear_screen()
     Utility.hide_cursor()
     # Test animation
