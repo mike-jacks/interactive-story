@@ -66,7 +66,7 @@ def load_ascii_art_animation_from_json(json_file_path: str) -> list[str]:
     with open(json_file_path, 'r') as f:
         return json.load(f)
 
-def play_ascii_animation(ascii_art_animation: list[str], frames_per_second: int, loop_num_times: int = 1, stop_event = None, continue_thread_after_stop_for: float = 0.0) -> ThreadControl | None:
+def play_ascii_animation(ascii_art_animation: list[str], frames_per_second: int, loop_num_times: int = 1, stop_event = None, continue_thread_after_stop_for: float = 0.0) -> ThreadControl:
     """
     Plays an ASCII art animation in the console.
 
@@ -80,7 +80,7 @@ def play_ascii_animation(ascii_art_animation: list[str], frames_per_second: int,
     Returns:
         ThreadControl | None: A control object for the animation thread if looping indefinitely, otherwise None.
     """
-    
+
     if loop_num_times < 0:
         loop_num_times = -1 * loop_num_times
         last_frame = ascii_art_animation[0]
@@ -88,44 +88,46 @@ def play_ascii_animation(ascii_art_animation: list[str], frames_per_second: int,
             for i, frame in enumerate(ascii_art_animation):
                 if i == 0:
                     continue
-                print(frame)
+                sys.stdout.write(frame)
+                sys.stdout.flush()
                 time.sleep(1/frames_per_second)
                 Utility.clear_multi_line(frame)
             for i, frame in enumerate(reversed(ascii_art_animation)):
                 if i == 0:
                     continue
-                print(frame)
+                sys.stdout.write(frame)
+                sys.stdout.flush()
                 time.sleep(1/frames_per_second)
                 Utility.clear_multi_line(frame)
             print(last_frame)
-            return None
     elif loop_num_times > 0:
         last_frame = ascii_art_animation[-1]
         for _ in range(loop_num_times):
             for frame in ascii_art_animation:
-                print(frame)
+                sys.stdout.write(frame)
+                sys.stdout.flush()
                 time.sleep(1/frames_per_second)
                 Utility.clear_multi_line(frame)
         print(last_frame)
-        return None
     else:
         while True:
             def play_ascii_animation_thread(stop_event=None):
                 while True:
                     if stop_event and stop_event.is_set():
                         break
-                    last_frame = ascii_art_animation[-1]
-                    for frame in ascii_art_animation:
-                        print(frame)
-                        time.sleep(1/frames_per_second)
-                        Utility.clear_multi_line(frame)
-                print(last_frame)
+                        for frame in ascii_art_animation:
+                            sys.stdout.write(frame)
+                            sys.stdout.flush()
+                            time.sleep(1/frames_per_second)
+                            Utility.clear_multi_line(frame)
+                        sys.stdout.write(ascii_art_animation[-1])
+                        sys.stdout.flush()
             ascii_animation_thread = ThreadControl(play_ascii_animation_thread, stop_event)
             ascii_animation_thread.start()
             time.sleep(continue_thread_after_stop_for)
-            return ascii_animation_thread
-    return None
-        
+        return ascii_animation_thread
+    return ThreadControl(None, None)
+
 if __name__ == "__main__":
     def main():
         """
@@ -134,7 +136,7 @@ if __name__ == "__main__":
         Usage:
             python script_name.py <path to image folder> <optional: true for folder of image sequence> <optional: number of columns>
         """
-        
+
         if len(sys.argv) == 1:
             print("Usage: python make_ascii_json_from_image.py <path to image folder> <optional: true for folder of image sequence>")
             sys.exit(1)
@@ -160,7 +162,7 @@ if __name__ == "__main__":
                     else:
                         print("Invalid image file type. Skipping file...")
                         continue
-        elif len(sys.argv) == 3:     
+        elif len(sys.argv) == 3:
             if sys.argv[2] == "true" or sys.argv[2] == "True" or sys.argv[2] == "TRUE" or sys.argv[2] == "t" or sys.argv[2] == "T":
                 ascii_art_animation = _create_ascii_art_animation_from_images(image_folder_path)
                 while True:
@@ -232,6 +234,6 @@ if __name__ == "__main__":
             print("Invalid number of arguments. Exiting...")
             print("Usage: python make_ascii_json_from_image.py <path to image folder> <optional: true for folder of image sequence>")
             sys.exit(1)
-        
+
 
     main()

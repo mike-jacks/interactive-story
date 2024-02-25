@@ -13,6 +13,7 @@
 1. Mike Jacks - terminal.py This is the big file of the project that makes the terminal work. Got this to work with the help of chat GPT.
 1. Mike Jacks - text_color.py enum class to apply color to terminal text
 1. Mike Jacks - utility.py Utility class to implement common commands like clear screen across scripts.
+1. Mike Jacks - used github actions to build a versioning system for a single executable python file. Made versioning based off of github tag version numbers!
 
 This was a very fun and challenging project. Part of the challenge was not having a dedicated partner from the getgo due to scheduling conflicts and changing partners. Marshall was great to collaborate ideas with and he helped implement some 3D graphics needed to display security footage as well as built the original structure of the story.
 

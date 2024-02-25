@@ -1,5 +1,6 @@
 from datetime import datetime
 import os, sys
+from pathlib import Path
 import threading
 from time import sleep
 
@@ -26,14 +27,14 @@ class Utility:
             str: The current system date formatted as 'YYYY-MM-DD'.
         """
         return datetime.now().strftime("%Y-%m-%d")
-    
+
     @staticmethod
     def clear_screen():
         """
         Clears the terminal screen.
         """
         os.system('cls' if os.name == 'nt' else 'clear')
-    
+
     @staticmethod
     def clear_line():
         """
@@ -41,7 +42,7 @@ class Utility:
         """
         sys.stdout.write("\033[2K\r")
         sys.stdout.flush()
-    
+
     @staticmethod
     def clear_multi_line(string: str):
         """
@@ -52,22 +53,40 @@ class Utility:
         """
         num_lines = string.count("\n")
         sys.stdout.write(f"\033[{num_lines + 1}A")
-        
-    
+
+
     @staticmethod
     def hide_cursor():
         """
         Hides the cursor in the terminal.
         """
         print("\033[?25l", end="")
-    
+
     @staticmethod
     def show_cursor():
         """
         Shows the cursor in the terminal.
         """
         print("\033[?25h", end="")
-    
+
+    @staticmethod
+    def resource_path(relative_path: str):
+        """ Get absolute path to resource, works for dev and for PyInstaller """
+        # Pyinstaller creates a temp folder and stores path in _MEIPASS, otherwise use the current directory
+        base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+        return os.path.join(base_path, relative_path)
+
+    @staticmethod
+    def get_app_support_directory():
+        """
+        Returns the path to the application's support directory on macOS.
+        """
+        home_dir = Path.home()
+        app_support_dir = home_dir / "Library" / "Application Support" / "hack_the_planet"
+        # Ensure the directory exists
+        app_support_dir.mkdir(parents=True, exist_ok=True)
+        return app_support_dir
+
 
 class ThreadControl:
     """
@@ -89,20 +108,20 @@ class ThreadControl:
         self.args = args
         self.stop_event = threading.Event()
         self.thread = threading.Thread(target = self._run)
-    
+
     def _run(self):
         """
         Internal method that runs the target function and passes the stop event to it.
         """
         self.target(self.stop_event)
-    
+
     def start(self):
         """
         Starts the thread.
         """
         self.thread.start()
-    
-    def stop(self, wait_before_continueing_after_thread_stop_for = 0.0):
+
+    def stop(self, wait_before_continueing_after_thread_stop_for: float = 0.0):
         """
         Signals the thread to stop and waits for it to finish.
 

@@ -10,59 +10,45 @@ permissions:
   contents: write
   issues: write
 
-permissions:
-  contents: write
-  issues: write
-
 env:
   CARGO_TERM_COLOR: always
   EXECUTABLE_NAME: "hack_the_planet"
-  INITIAL_VERSION: "1.0.0"
-  VERSION_ID: "1.0.${{ github.run_number }}"
-  ZIP_NAME: ""
 
 jobs:
   check-version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.filter.outputs.version }}
-      should_run: ${{ steps.filter.outputs.should_run }}
+      version: ${{ steps.get_version.outputs.new_tag }}
+      should_run: ${{ steps.determine_run.outputs.should_run }}
+      ZIP_NAME: ${{ env.EXECUTABLE_NAME }}_macos.zip
     steps:
-      - name: create zip name
-        run: echo "ZIP_NAME=${{ env.EXECUTABLE_NAME }}_macos.zip" >> $GITHUB_ENV
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Get current version
+      - name: Bump version and tag
         id: get_version
         uses: anothrNick/github-tag-action@1.64.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEFAULT_BUMP: #none
+          DEFAULT_BUMP: none
+          TAG_PREFIX: ""
           WITH_V: true
-      
-      - name: Extract commit message
-        id: extract_commit_message
-        run: echo "commit_message=$(git log --format=%B -n 1 HEAD)" >> $GITHUB_ENV
+          RELEASE_BRANCHES: main
+          INITIAL_VERSION: 1.0.0
 
-      - name: Determine build necessity and increment version
-        id: filter
+      - name: Determine if workflow should run
+        id: determine_run
         run: |
-          if [[ "$commit_message" == "major:"* ]]; then
-            echo "should_run=true" >> $GITHUB_ENV
-            echo "::set-output name=version::$(echo ${{ steps.get_version.outputs.new_tag }} | awk -F. '{print $1+1 "." $2 "." $3}')"
-          elif [[ "$commit_message" == "minor:"* ]]; then
-            echo "should_run=true" >> $GITHUB_ENV
-            echo "::set-output name=version::$(echo ${{ steps.get_version.outputs.new_tag }} | awk -F. '{print $1 "." $2+1 "." $3}')"
-          elif [[ "$commit_message" == "patch:"* ]]; then
-            echo "should_run=true" >> $GITHUB_ENV
-            echo "::set-output name=version::$(echo ${{ steps.get_version.outputs.new_tag }} | awk -F. '{print $1 "." $2 "." $3+1}')"
+          if [[ ${{ steps.get_version.outputs.new_tag }} != "" ]]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
           else
-            echo "should_run=false" >> $GITHUB_ENV
+            echo "should_run=false" >> $GITHUB_OUTPUT
           fi
+          echo ${{ steps.get_version.outputs.new_tag }}
+          echo ${{ steps.get_version.outputs.part }}
+          echo ${{ steps.get_version.outputs.tag }}
 
   build-executable:
     needs: [check-version]
@@ -78,20 +64,18 @@ jobs:
           python_ver: "3.12"
           spec: "main.py"
           requirements: "requirements.txt"
-
-      - name: Rename executable for consistency across platforms
-        run: mv dist/main dist/${{ env.EXECUTABLE_NAME }}
+          upload_exe_with_name: ${{ env.EXECUTABLE_NAME }}
+          options: --onefile, --name ${{ env.EXECUTABLE_NAME }}, --console, --add-data "./animation_images_json/*.json:./animation_images_json/" --add-data "./sounds/*.wav:./sounds/" --add-data "./mission_messages/*.json:./mission_messages/"
 
       - name: Zip the executable
         run: |
           cd dist
-          zip -r ${{ env.ZIP_NAME }} ${{ env.EXECUTABLE_NAME }}
-
+          zip -r ${{ needs.check-version.outputs.ZIP_NAME }} ${{ env.EXECUTABLE_NAME }}
       - name: Upload executable as artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.EXECUTABLE_NAME }}
-          path: dist/${{ env.ZIP_NAME }}
+          path: dist/${{ needs.check-version.outputs.ZIP_NAME }}
 
   create-release:
     needs: [check-version, build-executable]
@@ -111,7 +95,7 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./dist/${{ env.ZIP_NAME }}
+          files: ./dist/${{ needs.check-version.outputs.ZIP_NAME }}
           tag_name: ${{ needs.check-version.outputs.version }}
           name: Release ${{ needs.check-version.outputs.version }}
         env:

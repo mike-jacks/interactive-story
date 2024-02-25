@@ -27,11 +27,11 @@ def animate_text_with_sound(text_to_animate: str, static_text: str = "", end_tex
         loop_offset (int): Offset to adjust sound looping to match text length.
         thread_stop_freeze (float): Time to freeze the thread after stopping the animation.
     """
-    
+
     animated_text_thread = animated_text(static_text=static_text, animated_text=text_to_animate, end_text=end_text, delay_between_chars=delay_between_chars, stop_event = stop_event, continue_thread_after_stop_for=continue_thread_after_stop_for)
     Sound.play(sound_file, loop=int((len(text_to_animate)*(delay_between_chars * 10)) + loop_offset), pause=pause)
     animated_text_thread.stop(thread_stop_freeze)
-    
+
 def update_messenger_and_display(messenger, msg_lst, animate: bool = False):
     """
     Updates messenger with new messages and displays them.
@@ -41,14 +41,14 @@ def update_messenger_and_display(messenger, msg_lst, animate: bool = False):
         msg_lst (list): List of new messages to add to the messenger.
         animate (bool): Whether to animate the message display.
     """
-    
+
     messenger.enqueue_messages(msg_lst)
     if msg_lst not in messenger.messages:
         messenger.messages.append(msg_lst)
     messenger.display_messages_and_wait(animate=animate)
     sleep(2)
     messenger.wait_for_window_to_close()
-    
+
 def access_terminal(user_terminal: Terminal, incoming_message: bool, messages: list = []):
     """
     Simulates user access to a terminal interface.
@@ -58,7 +58,7 @@ def access_terminal(user_terminal: Terminal, incoming_message: bool, messages: l
         incoming_message (bool): Indicates if there is an incoming message.
         messages (list): List of incoming messages, if any.
     """
-    
+
     user_terminal.hacker_messages.append(messages)
     Utility.hide_cursor()
     if not user_terminal.active_user:
@@ -100,7 +100,7 @@ def prompt_to_reload_terminal():
     """
     Prompts the user to reload the terminal or exit the game.
     """
-    
+
     while True:
         Utility.hide_cursor()
         animate_text_with_sound("Would you like to reload your terminal attempt to complete the mission? (yes/no): ",end_text="", loop_offset=6,thread_stop_freeze=0.1)
@@ -117,29 +117,31 @@ def main():
     """
     Main function to run the terminal-based hacking simulation game.
     """
-    
+
     Utility.clear_screen()
     Utility.hide_cursor()
     # Test animation
-    hackers_animation = load_ascii_art_animation_from_json("./animation_images_json/hackers_animation.json")
+    hackers_animation = load_ascii_art_animation_from_json(Utility.resource_path("./animation_images_json/hackers_animation.json"))
     #hackers_animation = clean_up_ascii_art_animation(hackers_animation)
     Sound.play(Sound.HACKERS_ANIMATION, loop=1, pause=0.0)
-    hackers_animation_thread = play_ascii_animation(hackers_animation, frames_per_second=28.8, loop_num_times=0, continue_thread_after_stop_for=0.01)
+    hackers_animation_thread = play_ascii_animation(hackers_animation, frames_per_second=28, loop_num_times=0, continue_thread_after_stop_for=0.01)
     hackers_animation_thread.stop()
     Utility.clear_screen()
-    
-    
+
+
     # Add opening animated logo and display on screen
     Utility.hide_cursor()
-    hack_the_planet_animation = load_ascii_art_animation_from_json("./animation_images_json/hack_the_planet_animation.json")
+    hack_the_planet_animation = load_ascii_art_animation_from_json(Utility.resource_path("./animation_images_json/hack_the_planet_animation.json"))
     hack_the_planet_animation = clean_up_ascii_art_animation(hack_the_planet_animation)
     hack_the_planet_animation_thread = play_ascii_animation(hack_the_planet_animation, frames_per_second=24, loop_num_times=0, continue_thread_after_stop_for=4.00)
     Sound.play(Sound.DIGITAL_TYPING, loop=15, pause=0.083)
     hack_the_planet_animation_thread.stop()
     Utility.clear_screen()
-    
+
     # Opening text animation with sound
-    if not os.path.exists("./filesystems/localhost_filesystem.json"):
+    filesystems_directory = Utility.get_app_support_directory() / "filesystems"
+    filesystems_directory.mkdir(parents=True, exist_ok=True)
+    if not os.path.exists(filesystems_directory / "localhost_filesystem.json"):
         animate_text_with_sound("Welcome to Hack The Planet!", loop_offset=2)
         animate_text_with_sound("In just a moment you will be asked to create a login for your terminal.", loop_offset=5)
         animate_text_with_sound("Once logged into your terminal, you can type 'help' to get a list of commands available to you.", loop_offset=8)
@@ -147,7 +149,7 @@ def main():
         sleep(2)
         Utility.clear_screen()
     else:
-        with open("./filesystems/localhost_filesystem.json", "r") as file:
+        with open(filesystems_directory / "localhost_filesystem.json", "r") as file:
             local_loaded_filesystem = json.load(file)
         username = list(local_loaded_filesystem["/"]["home"].keys())[0]
         password = local_loaded_filesystem["/"]["etc"][".passwd"]
@@ -157,7 +159,7 @@ def main():
         animate_text_with_sound("Good luck on your hacking adventure!", loop_offset=3)
         sleep(2)
         Utility.clear_screen()
-    
+
     # Booting up system text animation
     loading_kernel_text_animation = animated_text(static_text="Loading Kernel", animated_text="...", end_text=f"{TextColor.GREEN.value}Complete!{TextColor.RESET.value}\n", delay_between_chars=0.15, continue_thread_after_stop_for=3)
     Sound.play(Sound.COMPLETE_NOTIFICATION, loop=1, pause=0.0)
@@ -170,15 +172,16 @@ def main():
     booting_up_system_text_animation.stop(1.5)
     Utility.clear_screen()
     sleep(0.5)
-    access_granted_animation = load_ascii_art_animation_from_json("./animation_images_json/access_granted.json")
+    access_granted_animation = load_ascii_art_animation_from_json(Utility.resource_path("./animation_images_json/access_granted.json"))
     access_granted_animation = clean_up_ascii_art_animation(access_granted_animation)
     access_granted_animation_thread = play_ascii_animation(access_granted_animation, frames_per_second=24, loop_num_times=0, continue_thread_after_stop_for=0.5)
     Sound.play(Sound.MAC_OS_STARTUP_MODERN_SOUND)
-    access_granted_animation_thread.stop()
+    if access_granted_animation_thread != None:
+        access_granted_animation_thread.stop()
     sleep(1.5)
     Utility.clear_screen()
-    
-    
+
+
     Utility.hide_cursor()
     # Initialize Terminals
     user_terminal = Terminal(terminal_name="localhost", terminal_ip_address="127.0.0.1", is_user_terminal=True)
@@ -191,18 +194,18 @@ def main():
     gibson_messenger = gibson_terminal.messenger
     microsoft_messenger = microsoft_terminal.messenger
     apple_messenger = apple_terminal.messenger
-    
+
     #Load mission messages json:
-    with open("./mission_messages/mission_messages.json", "r") as file:
+    with open(Utility.resource_path("./mission_messages/mission_messages.json"), "r") as file:
         mission_messages = json.load(file)
-    
-    
-    
-    # Build Mission 1: Gibson Terminal    
+
+
+
+    # Build Mission 1: Gibson Terminal
     mission_1 = Mission("Mission 1: Gibson Terminal", user_terminal, gibson_terminal, mission_messages["1"], mission_messages["1_SUCCESS"])
     if not mission_1.is_complete:
         user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "gibson_credentials.info",
-    f"""    
+    f"""
     Gibson Terminal Credentials
     ---------------------------
     IP Address: {gibson_terminal.terminal_ip_address}
@@ -239,8 +242,8 @@ def main():
     6z7Xx0q3YfJk5xH8Z3L5BBfAk5YZZd0=VLwX8QejPbmdF3s0xL5+I7fZb8Bx4E3O
     df4QJ1t4tZUJ6z7Xx0q3YfJk5xH8Z3L5BBfAk5YZZd0=U2FsdGVkX1+IbE5LRVGn
     """)
-    
-    
+
+
     # Play Mission 1: Gibson Terminal
     mission_1_failed_already = False
     while not mission_1.is_complete:
@@ -282,8 +285,8 @@ def main():
             mission_1.is_a_failure()
             prompt_to_reload_terminal()
             Utility.clear_screen()
-    
-    
+
+
     # Build Mission 2: Microsoft Terminal
     mission_2 = Mission("Mission 2: Microsoft Terminal", user_terminal, microsoft_terminal, mission_messages["2"], mission_messages["2_SUCCESS"])
     if mission_1.is_complete and not mission_2.is_complete:
@@ -335,7 +338,7 @@ int main() {
     printf("Shutting down Dummy Internet Explorer/Edge Simulator...\n");
 
     return 0;
-}       
+}
     """
         windows_os = """
 #include <stdio.h>
@@ -375,7 +378,7 @@ int main() {
     Process* process2 = create_process(2, "Explorer", 8, 250);
 
     // Simulate OS operations
-    printf("Running processes: %s (PID: %d), %s (PID: %d)\n", 
+    printf("Running processes: %s (PID: %d), %s (PID: %d)\n",
            process1->name, process1->pid, process2->name, process2->pid);
 
     // Example of killing a process
@@ -390,7 +393,7 @@ int main() {
     """
         mission_2.enemy_terminal._add_file_to_filesystem(f"/home/{mission_2.enemy_terminal.valid_users[0].username}/Desktop", "microsoft_edge.c", microsoft_edge)
         mission_2.enemy_terminal._add_file_to_filesystem(f"/home/{mission_2.enemy_terminal.valid_users[0].username}/Desktop", "windows_os.c", windows_os)
-    
+
     # Play Mission 2: Microsoft Terminal
     mission_2_failed_already = False
     while not mission_2.is_complete:
@@ -452,17 +455,17 @@ int main() {
             mission_2.is_a_failure()
             prompt_to_reload_terminal()
             Utility.clear_screen()
-        
-    
-    
+
+
+
     # Build Mission 3: Apple Terminal
     mission_3 = Mission("Mission 3: Apple Terminal", user_terminal, apple_terminal, mission_messages["3"], mission_messages["3_SUCCESS"])
     if mission_1.is_complete and mission_2.is_complete and not mission_3.is_complete:
-        computer_room = load_ascii_art_animation_from_json("./animation_images_json/security.json")
-        street = load_ascii_art_animation_from_json("./animation_images_json/street.json")
+        computer_room = load_ascii_art_animation_from_json(Utility.resource_path("./animation_images_json/security.json"))
+        street = load_ascii_art_animation_from_json(Utility.resource_path("./animation_images_json/street.json"))
         mission_3.enemy_terminal._add_file_to_filesystem(f"/home/{apple_terminal.valid_users[0].username}/Movies", "security_footage.mp4", street)
         mission_3.enemy_terminal._add_file_to_filesystem(f"/home/{apple_terminal.valid_users[0].username}/Movies", "security_footage2.mp4", computer_room)
-        mission_3.user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "apple_credentials.info", 
+        mission_3.user_terminal._add_file_to_filesystem(f"/home/{user_terminal.valid_users[0].username}/Downloads", "apple_credentials.info",
 f"""    Apple Terminal Credentials
     --------------------------
     IP Address: {apple_terminal.terminal_ip_address}
@@ -471,7 +474,7 @@ f"""    Apple Terminal Credentials
     ---------------------------
 """
                                                         )
-    
+
     # Play Mission 3: Apple Terminal
     mission_3_failed_already = False
     while not mission_3.is_complete:
@@ -515,7 +518,7 @@ f"""    Apple Terminal Credentials
             mission_3.is_a_failure()
             prompt_to_reload_terminal()
             Utility.clear_screen()
-    
+
     # END GAME
     Utility.hide_cursor()
     animate_text_with_sound("New message incoming", end_text="", loop_offset=1,thread_stop_freeze=0.1)
@@ -527,19 +530,19 @@ f"""    Apple Terminal Credentials
     Utility.clear_screen()
     sleep(1)
     hacker_messenger.wait_for_window_to_close()
-    
+
     # animate_text_with_sound("All missions completed successfully!", loop_offset=2)
     # animate_text_with_sound("You are now a certified hacker!", loop_offset=2)
     # animate_text_with_sound("You have successfully hacked the planet!", loop_offset=2)
     # animate_text_with_sound("Congratulations!", loop_offset=2)
-    
+
     Utility.hide_cursor()
     animate_text_with_sound("Would you like to reset the game? (yes/no): ", end_text="", loop_offset=2)
     Utility.show_cursor()
     reset_game = input("")
     if re.match(r"yes|y", reset_game):
         mission_3.user_terminal.reset_game()
-    
-    
+
+
 if __name__ == "__main__":
     main()
