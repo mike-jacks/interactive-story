@@ -64,13 +64,13 @@ jobs:
           python_ver: "3.12"
           spec: "main.py"
           requirements: "requirements.txt"
-          upload_exe_with_name: ${{ env.EXECUTABLE_NAME }}_${{ needs.check-version.outputs.version }}
-          options: --onefile, --name ${{ env.EXECUTABLE_NAME }}_${{ needs.check-version.outputs.version }}, --console, --add-data "./animation_images_json/*.json:./animation_images_json/" --add-data "./sounds/*.wav:./sounds/" --add-data "./mission_messages/*.json:./mission_messages/"
+          upload_exe_with_name: ${{ env.EXECUTABLE_NAME }}
+          options: --onefile, --name ${{ env.EXECUTABLE_NAME }}, --console, --add-data "./animation_images_json/*.json:./animation_images_json/" --add-data "./sounds/*.wav:./sounds/" --add-data "./mission_messages/*.json:./mission_messages/"
 
       - name: Zip the executable
         run: |
           cd dist
-          zip -r ${{ needs.check-version.outputs.ZIP_NAME }} ${{ env.EXECUTABLE_NAME }}_${{ needs.check-version.outputs.version }}
+          zip -r ${{ needs.check-version.outputs.ZIP_NAME }} ${{ env.EXECUTABLE_NAME }}
       - name: Upload executable as artifact
         uses: actions/upload-artifact@v4
         with:
