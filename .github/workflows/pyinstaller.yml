@@ -65,7 +65,7 @@ jobs:
           spec: "main.py"
           requirements: "requirements.txt"
           upload_exe_with_name: ${{ env.EXECUTABLE_NAME }}
-          options: --onefile, --name ${{ env.EXECUTABLE_NAME }}, --icon="hack_the_planet.icns", --console, --add-data "./animation_images_json/*.json:./animation_images_json/", --add-data "./sounds/*.wav:./sounds/", --add-data "./mission_messages/*.json:./mission_messages/"
+          options: --onefile, --name ${{ env.EXECUTABLE_NAME }}, --icon hack_the_planet.icns, --console, --add-data "./animation_images_json/*.json:./animation_images_json/", --add-data "./sounds/*.wav:./sounds/", --add-data "./mission_messages/*.json:./mission_messages/"
 
       - name: Zip the executable
         run: |
