@@ -94,6 +94,7 @@ jobs:
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
+        if: needs.check-version.outputs.should_run == 'true'
         with:
           files: ./dist/${{ needs.check-version.outputs.ZIP_NAME }}
           tag_name: ${{ needs.check-version.outputs.version }}
